@@ -58,9 +58,14 @@
     if (c.loop.checked) { au.currentTime = begin(c); if (au.paused) play(c); }
     else { au.pause(); au.currentTime = begin(c); show(c); }
   }
+  // While the page is hidden (screen off, another app in front) the browser may hold the timer
+  // back, and only timeupdate (about every 0.25 s) is sure to come: then stop at the first one
+  // within 0.125 s of the cut, so the stop falls on one side or the other of the cut by at most
+  // 0.125 s — inside the pause, since the cut sits in its middle.
   function check() {
     if (!cur) return;
-    if (!cur.whole && au.currentTime >= cur.t1 - 0.025) atEnd(); else schedule();
+    var early = document.hidden ? 0.125 : 0.025;
+    if (!cur.whole && au.currentTime >= cur.t1 - early) atEnd(); else schedule();
   }
   function fail(c) { mark(c, false); c.err.hidden = false; }
   function play(c) {
