@@ -1,13 +1,138 @@
-/* Hifz web app: what the surah files add in the app (tools/make_book.py mode 'web') */
+/* Hifz web app: what the surah files add in the app (tools/make_book.py mode 'web'): the segment rows,
+   the practice bar and panel (app/player.js), follow-along, page marks (app/words.js), test mode and
+   worksheets (app/test.js, app/recite.js), focus view.  Colours come from app/view.css. */
 .tools .home{display:inline-flex;align-items:center;justify-content:center;min-width:2.2rem;padding:.15rem .55rem;border:1px solid #b9b2a1;border-radius:4px;background:#fff;color:#3d3a33;text-decoration:none;font-size:16px;line-height:1.3}
 .tools .home:hover{background:#3d3a33;color:#fff;border-color:#3d3a33}
+/* the segment row */
 .player .play .lb-pause{display:none}
 .player.playing .play .lb-play{display:none}
 .player.playing .play .lb-pause{display:inline}
 .player .play .ic{display:inline-block;min-width:1em;text-align:center}
-.player .seekrow{display:flex;align-items:center;gap:.6rem;width:100%;order:9}
-.player .seekrow[hidden]{display:none}
-.player .pos{font-variant-numeric:tabular-nums;white-space:nowrap;color:#5a5548}
-.player .seek{flex:1;min-width:8rem;accent-color:#8a6a1f}
-.player .perr{width:100%;margin:0;color:#b3261e;font-size:13px;order:10}
-.player .perr[hidden]{display:none}
+.player .tst,.player .fcs{font:inherit;font-weight:600;padding:.42em .95em;border:1px solid var(--ctl-line);border-radius:6px;background:var(--ctl);color:var(--ctl-ink);cursor:pointer}
+.player .tst[aria-pressed="true"]{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
+.player .play{font-size:1.05em}
+/* room for the bar */
+html.has-pbar body{padding-bottom:calc(7.2rem * var(--ui,1) + env(safe-area-inset-bottom,0px))}
+html.has-pbar.rp-open body{padding-bottom:var(--rph,50vh)}
+
+/* ---- the practice bar ---- */
+.pbar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--bar);border-top:1px solid var(--bar-line);color:var(--ink,#1f1d18);
+ font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:calc(15px * var(--ui,1));padding:.45em .6em calc(.45em + env(safe-area-inset-bottom,0px));
+ box-shadow:0 -4px 16px rgba(0,0,0,.12)}
+html.rp-open .pbar{display:none}
+.pb-in{max-width:46rem;margin:0 auto}
+.pb-row{display:flex;align-items:center;gap:.4em}
+.pb-b{flex:none;min-width:2.7em;height:2.7em;padding:0 .55em;border:1px solid var(--ctl-line);border-radius:12px;background:var(--ctl);color:var(--ctl-ink);
+ font:inherit;font-size:1.05em;font-weight:700;cursor:pointer;line-height:1}
+.pb-play{min-width:3.4em;height:3em;background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on);font-size:1.2em;border-radius:999px}
+.pb-range{flex:1 1 auto;min-width:0;height:2.7em;padding:0 .8em;border:1px solid var(--ctl-line);border-radius:12px;background:var(--ctl);color:var(--ctl-ink);
+ font:inherit;font-weight:600;text-align:start;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.pb-rep{font-variant-numeric:tabular-nums}
+.pb-prog{position:relative;height:.5em;margin:.45em .2em .2em;background:var(--line,#e3d9bf);border-radius:999px;overflow:hidden;cursor:pointer}
+.pb-fill{position:absolute;inset-block:0;inset-inline-start:0;width:0;background:var(--accent);border-radius:999px}
+.pb-stat{min-height:1.4em;font-size:.88em;font-weight:600;color:var(--muted,#5a5548);text-align:center;font-variant-numeric:tabular-nums}
+.pb-msg{margin:.3em 0 0;font-size:.9em;text-align:center;color:var(--muted,#5a5548)}
+.pb-msg.bad{color:var(--danger);font-weight:600}
+.pb-msg[hidden]{display:none}
+@media (max-width:420px){.pb-b{min-width:2.4em;padding:0 .35em}.pb-row{gap:.25em}}
+/* the practice panel */
+.psheet .pkinds button{flex:1 1 40%;font-size:.9em}
+.pcust{display:flex;gap:.6rem;margin:.6rem 0 0}
+.pcust[hidden]{display:none}
+.pcust label{flex:1;display:flex;flex-direction:column;gap:.25rem;font-size:.85em;font-weight:600;color:var(--muted,#5a5548)}
+.prepn{display:flex;align-items:center;gap:.6rem;margin:.6rem 0 0;font-size:.85em;font-weight:600;color:var(--muted,#5a5548)}
+.prep{width:5.5rem;font:inherit;font-size:1.3em;font-weight:700;text-align:center;padding:.3em .4em;border:1px solid var(--ctl-line);border-radius:10px;background:var(--ctl);color:var(--ctl-ink)}
+.prep.on{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
+.pcust select{font:inherit;font-size:1.15em;padding:.4em;border:1px solid var(--ctl-line);border-radius:10px;background:var(--ctl);color:var(--ctl-ink)}
+.pweak p{margin:.1rem .1rem .5rem;font-size:.92em;color:var(--muted,#5a5548)}
+.pweak button:disabled{opacity:.4;cursor:default}
+.pacts{display:flex;flex-direction:column;gap:.4rem}
+.pacts .vbtn{min-height:2.6em}
+
+/* ---- follow-along ---- */
+.quran .wd{border-radius:.25em;transition:background-color .12s}
+.quran .wd.ca{background:var(--hl-ayah)}
+.quran .wd.cw{background:var(--hl-word);box-shadow:0 .08em 0 0 var(--accent)}
+@media print{.quran .wd.ca,.quran .wd.cw{background:none!important;box-shadow:none!important}}
+/* page marks: where each page of the Mushaf begins, and its side */
+.pgm{display:block;text-align:center;margin:.35em 0 .1em;line-height:1.4;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:calc(13px * var(--ui,1));
+ font-weight:700;color:var(--muted,#5a5548)}
+.pgm::before{content:attr(data-label);display:inline-block;padding:.1em .9em;border:1px solid var(--rule,#c9b27a);border-radius:999px;background:var(--paper,#fff)}
+.pgm[data-side=R]::before{border-right-width:5px}
+.pgm[data-side=L]::before{border-left-width:5px}
+.pgm.top{margin-top:0}
+.hd-ay .pgs{display:block;font-weight:600;margin-top:.15rem}
+@media print{.pgm{font-size:9pt}.pgm::before{border-width:1px}}
+
+/* ---- test mode ---- */
+.tbar{margin:0 0 .8rem;padding:.55rem .6rem;border:1px solid var(--line,#d8d2c2);border-radius:10px;background:var(--chip,#f3f0e8);
+ font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:calc(14px * var(--ui,1))}
+.tb-row{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.35rem}
+.tb-modes{flex:1 1 100%}
+.tb-b{flex:1 1 auto;min-height:2.5em;padding:.3em .8em;border:1px solid var(--ctl-line);border-radius:10px;background:var(--ctl);color:var(--ctl-ink);font:inherit;font-weight:600;cursor:pointer}
+.tb-b.on{background:var(--danger);border-color:var(--danger);color:#fff}
+.tb-b[hidden]{display:none}
+.tb-tip{margin:.15rem .1rem 0;font-size:.85em;color:var(--muted,#5a5548)}
+.tb-live,.tb-rec{margin:.45rem 0 0;padding:.45rem .6rem;border-radius:8px;background:var(--paper,#fff);font-size:.95em;font-weight:600}
+.tb-live.bad{color:var(--danger)}
+.tb-live[hidden],.tb-rec[hidden]{display:none}
+.tb-rec p{margin:0 0 .35rem;font-weight:400;color:var(--muted,#5a5548)}
+.tb-rec .vseg button{font-size:.92em}
+section.testing .quran .wd{position:relative}
+section.testing .quran .wd:not(.shown):not(.wm){color:transparent!important;box-shadow:inset 0 -.12em 0 0 var(--muted,#8a8476);border-radius:0}
+section.testing .quran .wd:not(.shown):not(.wm) *{color:transparent!important}
+section.testing.h-letters .quran .wd:not(.shown):not(.wm)::before{content:attr(data-h);position:absolute;right:0;top:0;color:var(--muted,#5a5548);pointer-events:none}
+section.testing.h-firsts .quran .wd[data-i="1"]:not(.shown){color:inherit!important;box-shadow:none}
+section.testing.h-firsts .quran .wd[data-i="1"]:not(.shown) *{color:inherit!important}
+section.testing .quran .wd.shown.help{box-shadow:inset 0 -.12em 0 0 #d9a33a}
+section.testing .quran .wd.shown.ok{box-shadow:inset 0 -.12em 0 0 var(--ok)}
+section.testing .quran .wd.shown.miss{box-shadow:inset 0 -.14em 0 0 var(--danger);background:rgba(179,38,30,.12)}
+section.testing .quran .wd:not(.shown):not(.wm){cursor:pointer}
+section.testing .pgm{opacity:.75}
+.quran .aya.slip{position:relative}
+.quran .aya.slip::after{content:"";position:absolute;top:-.05em;left:-.1em;width:.42em;height:.42em;border-radius:50%;background:var(--danger)}
+.quran .aya.flash{animation:hz-flash 2s ease-out}
+@keyframes hz-flash{0%,40%{background:var(--hl-word)}100%{background:transparent}}
+.simb{display:inline-block;cursor:pointer;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.55em;vertical-align:super;margin:0 -.1em 0 .1em;color:#c27a00}
+.simb::before{content:"⚠"}
+html:is([data-theme=night],[data-theme=black]) .simb{color:#ffc04d}
+.simpop{max-height:70vh;overflow:auto}
+.simpop p{color:inherit;margin:.2rem 0 .5rem}
+.simlist{list-style:none;margin:0 0 .6rem;padding:0}
+.simlist li{padding:.3rem 0;border-top:1px solid var(--line,#e3d9bf)}
+.simlist a{color:var(--gold,#6b5216);font-weight:700}
+.simk{display:inline-block;min-width:6.5em;font-size:.82em;color:var(--muted,#5a5548)}
+/* the worksheet: the chosen segment alone, first letters as clues */
+@media print{
+ html.ws-print body>*:not(section.ws-target){display:none!important}
+ html.ws-print section.ws-target{display:flex!important}
+ html.ws-print section.ws-target .player,html.ws-print section.ws-target .tbar,html.ws-print section.ws-target .simb,
+ html.ws-print section.ws-target footer .legend,html.ws-print section.ws-target footer .note{display:none!important}
+ html.ws-print section.ws-target::before{content:attr(data-ws);display:block;font-family:system-ui,sans-serif;font-size:11pt;color:#555;margin:0 0 .4cm}
+ html.ws-print section.ws-target .quran{line-height:2.6}
+ html.ws-print section.ws-target .quran .wd{position:relative}
+ html.ws-print section.ws-target .quran .wd:not(.wm){color:transparent!important;box-shadow:inset 0 -1px 0 0 #999!important}
+ html.ws-print section.ws-target .quran .wd:not(.wm) *{color:transparent!important}
+ html.ws-print section.ws-target .quran .wd:not(.wm)::before{content:attr(data-h)!important;position:absolute;right:0;top:0;color:#444!important}
+}
+
+/* ---- focus view ---- */
+.focusv{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--paper,#fff);color:var(--ink,#000)}
+.focusv[hidden]{display:none}
+html.fv-open body{overflow:hidden}
+.fv-top{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.6rem .8rem;border-bottom:1px solid var(--line,#e3d9bf);
+ font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:calc(15px * var(--ui,1));font-weight:700;color:var(--muted,#5a5548)}
+.fv-body{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:1rem 1.2rem}
+.fv-text{margin:auto 0;max-width:60rem;font-size:calc(42px * var(--qscale,1));line-height:2.25;text-align:center;direction:rtl;word-spacing:.1em}
+.fv-text .aya{color:var(--gold,#8a6a1f);font-size:.75em;margin:0 .2em;white-space:nowrap}
+.fv-text .wd{border-radius:.2em}
+.fv-text .wd.cw{background:var(--hl-word);box-shadow:0 .08em 0 0 var(--accent)}
+.fv-body.testing .fv-text .wd:not(.wm){color:transparent;box-shadow:inset 0 -.1em 0 0 var(--muted,#8a8476)}
+.fv-body.testing .fv-text .wd:not(.wm) *{color:transparent}
+.fv-nav{display:flex;justify-content:center;gap:1rem;padding:.7rem .8rem calc(.9rem + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line,#e3d9bf)}
+.fv-b{min-width:3.6rem;height:3.2rem;border:1px solid var(--ctl-line);border-radius:14px;background:var(--ctl);color:var(--ctl-ink);
+ font:inherit;font-size:calc(22px * var(--ui,1));font-weight:700;cursor:pointer}
+.fv-play{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on);min-width:5rem}
+.fv-x{min-width:2.8rem;height:2.6rem;font-size:calc(20px * var(--ui,1))}
+@media (max-width:700px){.fv-text{font-size:calc(32px * var(--qscale,1))}}
+@media print{.pbar,.focusv,.tbar{display:none!important}html.has-pbar body{padding-bottom:0}}

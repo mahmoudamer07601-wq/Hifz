@@ -1,0 +1,156 @@
+/* Hifz web app: display settings on every page (app/view.js; applied before drawing by ui.VIEW_JS):
+   html[data-theme] light | night | black, html[data-plain] tajweed colours off, html[data-bold],
+   html[data-lead] line spacing, --qscale text size, --qfont font, --ui size of the controls.
+   Night and black recolour the surah files (tools/book-head.html), the reference panel
+   (tools/refs.py), the repeats box (tools/repeats.py), the home page and the app's own parts. */
+:root{--ui:1;--hl-ayah:#f7edc8;--hl-word:#f2cf62;--hl-word-ink:#000;--sheet:#fffdf6;--sheet-ink:#2b2822;--ctl:#fff;--ctl-ink:#3d3a33;
+ --ctl-line:#b9b2a1;--ctl-on:#3d3a33;--ctl-on-ink:#fff;--accent:#8a6a1f;--bar:#f3f0e8;--bar-line:#d8d2c2;--danger:#b3261e;--ok:#2e7d4f;
+ --shade:rgba(0,0,0,.35)}
+html[data-theme=night]{--ink:#ece5d3;--paper:#1b1a17;--muted:#b5ac98;--gold:#dcbb66;--rule:#5e5034;--bg:#121110;--chip:#24221d;--line:#3a362d;
+ --red:#ff8a80;--hl-ayah:#302a17;--hl-word:#7a6418;--hl-word-ink:#fff;--sheet:#1f1d19;--sheet-ink:#ece5d3;--ctl:#2b2923;--ctl-ink:#ece5d3;
+ --ctl-line:#55503f;--ctl-on:#ece5d3;--ctl-on-ink:#1b1a17;--accent:#dcbb66;--bar:#24221d;--bar-line:#3a362d;--danger:#ff8a80;--ok:#7ad59a;
+ --shade:rgba(0,0,0,.6);color-scheme:dark}
+html[data-theme=black]{--ink:#fff;--paper:#000;--muted:#d6d6d6;--gold:#ffd86b;--rule:#6b6b6b;--bg:#000;--chip:#000;--line:#5a5a5a;
+ --red:#ff8a80;--hl-ayah:#2a2410;--hl-word:#8a7212;--hl-word-ink:#fff;--sheet:#0b0b0b;--sheet-ink:#fff;--ctl:#121212;--ctl-ink:#fff;
+ --ctl-line:#8a8a8a;--ctl-on:#fff;--ctl-on-ink:#000;--accent:#ffd86b;--bar:#000;--bar-line:#5a5a5a;--danger:#ff8a80;--ok:#8be3a8;
+ --shade:rgba(0,0,0,.7);color-scheme:dark}
+
+/* ---- dark themes: the surah files, the catalog, the home page ---- */
+html:is([data-theme=night],[data-theme=black]){background:var(--bg)}
+html:is([data-theme=night],[data-theme=black]) body{background:var(--bg);color:var(--ink)}
+html:is([data-theme=night],[data-theme=black]) .tools{background:var(--chip);border-color:var(--line);color:var(--ink)}
+html:is([data-theme=night],[data-theme=black]) .tools button,html:is([data-theme=night],[data-theme=black]) .tools a.vw,
+html:is([data-theme=night],[data-theme=black]) .tools .home{background:var(--ctl);color:var(--ctl-ink);border-color:var(--ctl-line)}
+html:is([data-theme=night],[data-theme=black]) .tools button[aria-pressed="true"]{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
+html:is([data-theme=night],[data-theme=black]) .ui-lang{background:var(--ctl);border-color:var(--ctl-line)}
+html:is([data-theme=night],[data-theme=black]) .tools .ui-lang button+button{border-color:var(--line)}
+html:is([data-theme=night],[data-theme=black]) .page{box-shadow:none;border:1px solid var(--line)}
+html:is([data-theme=night],[data-theme=black]) .player{background:var(--chip);border-color:var(--line);color:var(--ink)}
+html:is([data-theme=night],[data-theme=black]) .player .play{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
+html:is([data-theme=night],[data-theme=black]) .player .dur{color:var(--muted)}
+html:is([data-theme=night],[data-theme=black]) :is(.player a,.toc .n){color:var(--gold)}
+html:is([data-theme=night],[data-theme=black]) .toc li{border-color:var(--line)}
+html:is([data-theme=night],[data-theme=black]) .ref-mushaf{background:var(--ctl);color:var(--gold);border-color:var(--line)}
+html:is([data-theme=night],[data-theme=black]) .ref-mushaf:hover{background:var(--ctl-on);color:var(--ctl-on-ink)}
+html:is([data-theme=night],[data-theme=black]) .quran .aya.ref-on{background:var(--hl-ayah);box-shadow:0 0 0 2px var(--rule)}
+html:is([data-theme=night],[data-theme=black]) .quran .aya.hs-on{background:var(--hl-word)}
+@media (hover:hover){html:is([data-theme=night],[data-theme=black]) .quran .aya[data-ref]:hover{background:var(--hl-ayah)}}
+html:is([data-theme=night],[data-theme=black]) .hs-q{background-color:var(--ctl);color:var(--ctl-ink);border-color:var(--ctl-line)}
+html:is([data-theme=night],[data-theme=black]) .hs-q::placeholder{color:var(--muted)}
+@media screen{html:is([data-theme=night],[data-theme=black]) ::highlight(hifz-ayah){background-color:rgba(220,187,102,.28)}
+ html:is([data-theme=night],[data-theme=black]) ::highlight(hifz-hit){background-color:#5c2a23;color:#ffc2b8}}
+/* tajweed colours: lighter versions that keep the legend's order of hues on a dark page */
+html[data-theme=night] .lazim{color:#ff6262}html[data-theme=night] .wajib{color:#ff9d88}html[data-theme=night] .jaiz{color:#ffb54d}
+html[data-theme=night] .two{color:#dbb68e}html[data-theme=night] .ghunna{color:#66d698}html[data-theme=night] .silent{color:#8e897e}
+html[data-theme=night] .tafkhim{color:#93adff}html[data-theme=night] .qalqala{color:#63d5ff}
+html[data-theme=black] .lazim{color:#ff5555}html[data-theme=black] .wajib{color:#ffa694}html[data-theme=black] .jaiz{color:#ffbd5a}
+html[data-theme=black] .two{color:#ebcca4}html[data-theme=black] .ghunna{color:#6ff3a4}html[data-theme=black] .silent{color:#9c9c9c}
+html[data-theme=black] .tafkhim{color:#a8bcff}html[data-theme=black] .qalqala{color:#70e2ff}
+html[data-theme=night] .legend li:nth-child(1){--c:#ff6262!important}html[data-theme=night] .legend li:nth-child(2){--c:#ff9d88!important}
+html[data-theme=night] .legend li:nth-child(3){--c:#ffb54d!important}html[data-theme=night] .legend li:nth-child(4){--c:#dbb68e!important}
+html[data-theme=night] .legend li:nth-child(5){--c:#66d698!important}html[data-theme=night] .legend li:nth-child(6){--c:#8e897e!important}
+html[data-theme=night] .legend li:nth-child(7){--c:#93adff!important}html[data-theme=night] .legend li:nth-child(8){--c:#63d5ff!important}
+html[data-theme=black] .legend li:nth-child(1){--c:#ff5555!important}html[data-theme=black] .legend li:nth-child(2){--c:#ffa694!important}
+html[data-theme=black] .legend li:nth-child(3){--c:#ffbd5a!important}html[data-theme=black] .legend li:nth-child(4){--c:#ebcca4!important}
+html[data-theme=black] .legend li:nth-child(5){--c:#6ff3a4!important}html[data-theme=black] .legend li:nth-child(6){--c:#9c9c9c!important}
+html[data-theme=black] .legend li:nth-child(7){--c:#a8bcff!important}html[data-theme=black] .legend li:nth-child(8){--c:#70e2ff!important}
+/* the repeats box */
+html:is([data-theme=night],[data-theme=black]) .rep{background:var(--chip);border-color:var(--rule)}
+html:is([data-theme=night],[data-theme=black]) .rep :is(h3,.m,.d,h4){color:var(--ink)}
+html:is([data-theme=night],[data-theme=black]) .rep :is(.lead,.lbl,.key,.d){color:var(--muted)}
+html:is([data-theme=night],[data-theme=black]) .rep :is(summary,li){border-color:var(--line)}
+html:is([data-theme=night],[data-theme=black]) .rep :is(.m a,.d a){color:var(--gold)}
+html:is([data-theme=night],[data-theme=black]) .rep mark.var{border-color:#e0ad45}
+html:is([data-theme=night],[data-theme=black]) .rep mark.sh{border-color:var(--ink)}
+html:is([data-theme=night],[data-theme=black]) .rep mark.chg{background:#5a4712}
+html:is([data-theme=night],[data-theme=black]) .rep mark.add{background:#1d4a2b}
+html:is([data-theme=night],[data-theme=black]) .rep mark.del{background:#5a2323}
+html:is([data-theme=night],[data-theme=black]) .rep mark.mov{background:#1d3757}
+/* the reference panel */
+html:is([data-theme=night],[data-theme=black]) .refpanel{background:var(--sheet);color:var(--sheet-ink);border-color:var(--rule)}
+html:is([data-theme=night],[data-theme=black]) :is(.rp-bar,.rp-pg){background:var(--chip);border-color:var(--line)}
+html:is([data-theme=night],[data-theme=black]) :is(.rp-b,.rp-s,.rp-back,.rp-scope,.rp-mean,.rp-goto,.rp-more){background:var(--ctl);color:var(--ctl-ink);border-color:var(--ctl-line)}
+html:is([data-theme=night],[data-theme=black]) :is(.rp-s,.rp-scope)[aria-pressed="true"]{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
+html:is([data-theme=night],[data-theme=black]) :is(.rp-body,.rp-frame){background:var(--paper)}
+html:is([data-theme=night],[data-theme=black]) .rp-frame{filter:invert(.9) hue-rotate(180deg)}
+html:is([data-theme=night],[data-theme=black]) :is(.rp-text,.rp-q){color:var(--ink)}
+html:is([data-theme=night],[data-theme=black]) :is(.rp-loc,.rp-msg,.rp-alt,.rp-hm,.rp-cite,.rp-wait){color:var(--muted)}
+html:is([data-theme=night],[data-theme=black]) :is(.rp-loc a,.rp-where,.rp-cite a){color:var(--gold)}
+html:is([data-theme=night],[data-theme=black]) .rp-hit{border-color:var(--line)}
+html:is([data-theme=night],[data-theme=black]) .rp-hit:hover{background:var(--chip)}
+html:is([data-theme=night],[data-theme=black]) .rp-hit[aria-current="true"]{background:var(--hl-ayah)}
+html:is([data-theme=night],[data-theme=black]) .rp-q mark{background:#5c2a23;color:#ffc2b8}
+html:is([data-theme=night],[data-theme=black]) .rp-wait{background:rgba(0,0,0,.7)}
+html:is([data-theme=night],[data-theme=black]) .rp-scan img{filter:invert(.92) hue-rotate(180deg)}
+/* the home page (home.css works on these variables) */
+html:is([data-theme=night],[data-theme=black]) :is(.list li,.rs-list,.audio){border-color:var(--line)}
+html:is([data-theme=night],[data-theme=black]) :is(.list a:hover,.rs-list a:hover,.sv:hover){background:var(--chip)}
+html:is([data-theme=night],[data-theme=black]) :is(.rs-list li+li,.sv){border-color:var(--line)}
+html:is([data-theme=night],[data-theme=black]) .btn.primary{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
+html:is([data-theme=night],[data-theme=black]) .find input{border-color:var(--ctl-line)}
+html:is([data-theme=night],[data-theme=black]) .progress .bar{background:var(--line)}
+html:is([data-theme=night],[data-theme=black]) .rs-q mark{background:#5c2a23;color:#ffc2b8}
+html:is([data-theme=night],[data-theme=black]) footer a{color:var(--gold)}
+html:is([data-theme=night],[data-theme=black]) .sv.saved{color:var(--ok)}
+
+/* ---- the text: colours off, bold, spacing, size ---- */
+html[data-plain] :is(.quran,.bism,.fv-text) :is(.lazim,.wajib,.jaiz,.two,.ghunna,.silent,.tafkhim,.qalqala){color:inherit}
+html[data-plain] .legend{display:none}
+html[data-bold] :is(.quran,.bism,.fv-text,.rep .q,.rep .q2,.clue .w,.rp-q,.wsx){font-weight:700;-webkit-text-stroke:.018em currentColor}
+html[data-lead="2"] .quran{line-height:2.65}
+html[data-lead="3"] .quran{line-height:3.1}
+html[data-lead="2"] .fv-text{line-height:2.5}
+html[data-lead="3"] .fv-text{line-height:2.9}
+@media screen{
+ html .bism{font-size:calc(30px * var(--qscale,1))}
+ html .page h1{font-size:calc(31px * min(var(--qscale,1),1.6))}
+ html .clue{font-size:calc(25px * min(var(--qscale,1),1.8))}
+ html[data-big] .quran{text-align:right;text-align-last:auto;word-spacing:.12em}
+}
+@media screen and (max-width:700px){
+ html .bism{font-size:calc(24px * var(--qscale,1))}
+ html .page h1{font-size:calc(22px * min(var(--qscale,1),1.6))}
+ html .clue{font-size:calc(20px * min(var(--qscale,1),1.8))}
+}
+/* controls scale with --ui (the display panel's "Buttons" choice) */
+html .tools{font-size:calc(13px * var(--ui,1))}
+html .player{font-size:calc(14px * var(--ui,1))}
+@media (max-width:700px){html .tools{font-size:calc(12px * var(--ui,1))}}
+
+/* ---- the app's toolbar buttons and the display panel ---- */
+.tools .vw{display:inline-flex;align-items:center;justify-content:center;min-width:2.3em;padding:.25em .65em;border:1px solid #b9b2a1;
+ border-radius:4px;background:#fff;color:#3d3a33;font:inherit;font-weight:600;line-height:1.3;text-decoration:none;cursor:pointer}
+.tools .vw:hover{background:#3d3a33;color:#fff;border-color:#3d3a33}
+.tools .vw[data-theme-toggle]{font-size:1.15em;padding:.12em .55em}
+.vsheet,.vpop{position:fixed;z-index:60;background:var(--sheet);color:var(--sheet-ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+ font-size:calc(15px * var(--ui,1));line-height:1.45;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.vsheet{left:50%;transform:translateX(-50%);bottom:0;width:min(34rem,100%);max-height:88vh;overflow:auto;border-radius:16px 16px 0 0;
+ padding:1rem 1.1rem calc(1.1rem + env(safe-area-inset-bottom,0px))}
+.vshade{position:fixed;inset:0;z-index:59;background:var(--shade)}
+.vsheet[hidden],.vshade[hidden],.vpop[hidden]{display:none}
+.vsheet h2{margin:0 0 .6rem;font-size:1.15em;font-weight:700;text-align:center}
+.vsheet .vg{margin:.75rem 0 0}
+.vsheet .vl{display:block;font-size:.85em;font-weight:600;color:var(--muted,#5a5548);margin:0 .1rem .35rem}
+.vseg{display:flex;flex-wrap:wrap;gap:.35rem}
+.vseg button,.vbtn{flex:1 1 auto;min-height:2.7em;padding:.4em .8em;border:1px solid var(--ctl-line);border-radius:10px;background:var(--ctl);
+ color:var(--ctl-ink);font:inherit;font-weight:600;cursor:pointer}
+.vseg button[aria-pressed="true"],.vbtn.on{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
+.vstep{display:flex;align-items:center;gap:.6rem}
+.vstep button{flex:none;width:3.2em;height:2.7em;border:1px solid var(--ctl-line);border-radius:10px;background:var(--ctl);color:var(--ctl-ink);
+ font:inherit;font-size:1.15em;font-weight:700;cursor:pointer}
+.vstep output{flex:1;text-align:center;font-weight:700;font-size:1.1em;font-variant-numeric:tabular-nums}
+.vrow{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.55rem .1rem;border-top:1px solid var(--line,#e3d9bf)}
+.vrow:first-child{border-top:0}
+.vsw{position:relative;flex:none;width:3.2em;height:1.8em;border-radius:999px;border:1px solid var(--ctl-line);background:var(--ctl);cursor:pointer;padding:0}
+.vsw::after{content:"";position:absolute;top:.15em;inset-inline-start:.15em;width:1.4em;height:1.4em;border-radius:50%;background:var(--muted,#8a8476);transition:inset-inline-start .15s}
+.vsw[aria-pressed="true"]{background:var(--accent);border-color:var(--accent)}
+.vsw[aria-pressed="true"]::after{inset-inline-start:1.55em;background:#fff}
+.vdone{display:block;width:100%;margin:1rem 0 0;min-height:2.9em;border:0;border-radius:12px;background:var(--ctl-on);color:var(--ctl-on-ink);
+ font:inherit;font-weight:700;cursor:pointer}
+.vpop{top:calc(var(--tools-h,3rem) + .4rem);inset-inline-end:.6rem;width:min(20rem,calc(100% - 1.2rem));border-radius:14px;padding:.9rem 1rem 1rem}
+.vpop form{display:flex;gap:.5rem;align-items:center}
+.vpop input{flex:1;min-width:0;font:inherit;font-size:1.25em;padding:.35em .6em;border:1px solid var(--ctl-line);border-radius:10px;background:var(--ctl);
+ color:var(--ctl-ink);text-align:center}
+.vpop .vbtn{flex:none}
+.vpop p{margin:.2rem 0 .6rem;color:var(--muted,#5a5548);font-size:.92em}
+@media print{.vsheet,.vshade,.vpop{display:none!important}}

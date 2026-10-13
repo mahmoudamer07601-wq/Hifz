@@ -5,12 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title data-ar="الحفظ — حفظ القرآن الكريم" data-en="Hifz — Qurʾān memorization" data-es="Hifz — memorización del Corán">الحفظ — حفظ القرآن الكريم</title>
 <script>(function(){var d=document.documentElement,u=null,m=/[#&]ui=(ar|en|es)(?=&|$)/.exec(location.hash);try{u=m?m[1]:localStorage.getItem('hifz-ui');if(m)localStorage.setItem('hifz-ui',u);}catch(e){if(m)u=m[1];}if(m){try{history.replaceState(history.state,'',location.href.split('#')[0]+location.hash.replace(/([#&])ui=(?:ar|en|es)(?=&|$)/,'$1').replace('&&','&').replace(/^#&/,'#').replace(/[#&]$/,''));}catch(e){}}if(u!=='en'&&u!=='es')u='ar';d.setAttribute('data-ui',u);var t=document.getElementsByTagName('title')[0],v=t&&t.getAttribute('data-'+u);if(v)document.title=v;})();</script>
+<script>(function(){var d=document.documentElement,v={};try{v=JSON.parse(localStorage.getItem('hifz-view')||'{}')||{};}catch(e){}var t=v.theme||'auto';if(t==='auto')t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'night':'light';if(t!=='night'&&t!=='black')t='light';d.setAttribute('data-theme',t);if(v.bold)d.setAttribute('data-bold','');if(v.plain)d.setAttribute('data-plain','');if(v.lead)d.setAttribute('data-lead',v.lead);if(+v.size>0)d.style.setProperty('--qscale',v.size);if(+v.ui>0)d.style.setProperty('--ui',v.ui);if(v.font)d.style.setProperty('--qfont','"'+String(v.font).replace(/["\\]/g,'')+'"');})();</script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#f3f0e8">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <!-- Qur'anic text: Tanzil Quran Text (Uthmani, version 1.1), tanzil.net, copied verbatim; see tanzil-license.txt -->
+<link rel="stylesheet" href="app/view.css">
 <script src="app/core.js" data-root="" data-cdn="https://audio-cdn.tarteel.ai/quran/surah/minshawy/murattal/mp3/NNN.mp3" defer></script>
+<script src="app/view.js" defer></script>
 <meta name="description" content="Qurʾān memorization: the segments, tajweed pages and recitation of the Hifz project">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&display=swap" rel="stylesheet">
@@ -20,6 +23,9 @@
 <body>
 
 <div class="tools ui">
+<button type="button" class="vw" data-view-open title="عرض النص: الوضع الليلي والحجم والخط" data-title-ar="عرض النص: الوضع الليلي والحجم والخط" data-title-en="Display: night mode, text size, font" data-title-es="Visualización: modo nocturno, tamaño, fuente" aria-label="عرض النص: الوضع الليلي والحجم والخط" data-aria-label-ar="عرض النص: الوضع الليلي والحجم والخط" data-aria-label-en="Display: night mode, text size, font" data-aria-label-es="Visualización: modo nocturno, tamaño, fuente" data-i18n-attr>Aa</button>
+<button type="button" class="vw" data-theme-toggle aria-pressed="false" title="الوضع الليلي" data-title-ar="الوضع الليلي" data-title-en="Night mode" data-title-es="Modo nocturno" aria-label="الوضع الليلي" data-aria-label-ar="الوضع الليلي" data-aria-label-en="Night mode" data-aria-label-es="Modo nocturno" data-i18n-attr>☾</button>
+<a class="vw" data-mushaf href="mushaf.html" title="المصحف: اذهب إلى صفحة" data-title-ar="المصحف: اذهب إلى صفحة" data-title-en="Mushaf: go to a page" data-title-es="Mushaf: ir a una página" aria-label="المصحف: اذهب إلى صفحة" data-aria-label-ar="المصحف: اذهب إلى صفحة" data-aria-label-en="Mushaf: go to a page" data-aria-label-es="Mushaf: ir a una página" data-i18n-attr><span class="tr"><span lang="ar">المصحف</span><span lang="en">Mushaf</span><span lang="es">Mushaf</span></span></a>
 <span class="ui-lang" role="group" aria-label="لغة الواجهة" data-aria-label-ar="لغة الواجهة" data-aria-label-en="Interface language" data-aria-label-es="Idioma de la interfaz" data-i18n-attr><button type="button" data-ui-set="en" lang="en" aria-pressed="false" title="الواجهة بالإنجليزية" data-title-ar="الواجهة بالإنجليزية" data-title-en="Interface in English" data-title-es="Interfaz en inglés" data-i18n-attr>EN</button><button type="button" data-ui-set="es" lang="es" aria-pressed="false" title="الواجهة بالإسبانية" data-title-ar="الواجهة بالإسبانية" data-title-en="Interface in Spanish" data-title-es="Interfaz en español" data-i18n-attr>ES</button><button type="button" data-ui-set="ar" lang="ar" aria-pressed="true" title="الواجهة بالعربية" data-title-ar="الواجهة بالعربية" data-title-en="Interface in Arabic" data-title-es="Interfaz en árabe" data-i18n-attr>AR</button></span>
 </div>
 <script>
@@ -59,6 +65,7 @@ if(lang()!=='ar'){attrs();document.addEventListener('DOMContentLoaded',function(
 <p class="stats"><span class="tr"><span lang="ar">١١٤ سورة · ١٠٤٦ مقطعاً · ٦٠٤ صفحات · ٢٨:٤٨:١٩</span><span lang="en">114 surahs · 1046 segments · 604 pages · 28:48:19</span><span lang="es">114 suras · 1046 segmentos · 604 páginas · 28:48:19</span></span></p>
 <div class="actions">
 <a class="btn" href="https://claude.ai/artifact/46qtRxwnZMiRmwzQhw4xGj" target="_blank" rel="noopener"><span class="tr"><span lang="ar">خطة المراجعة</span><span lang="en">Revision plan</span><span lang="es">Plan de repaso</span></span> ↗</a>
+<a class="btn" href="mushaf.html"><span class="tr"><span lang="ar">المصحف</span><span lang="en">Mushaf</span><span lang="es">Mushaf</span></span></a>
 <a class="btn" href="repeats-all-surahs.html"><span class="tr"><span lang="ar">المكرر والمتشابه</span><span lang="en">Repeated and similar ayat</span><span lang="es">Aleyas repetidas y similares</span></span></a>
 <a class="btn" href="#audio"><span class="tr"><span lang="ar">الصوت دون اتصال</span><span lang="en">Offline audio</span><span lang="es">Audio sin conexión</span></span></a>
 <button type="button" class="btn primary" id="install" hidden><span class="tr"><span lang="ar">ثبّت التطبيق</span><span lang="en">Install the app</span><span lang="es">Instalar la aplicación</span></span></button>

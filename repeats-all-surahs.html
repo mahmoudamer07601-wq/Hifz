@@ -3,12 +3,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title data-ar="المكرر والمتشابه — كل السور" data-en="Repeated and similar ayat — all surahs" data-es="Aleyas repetidas y similares — todas las suras">المكرر والمتشابه — كل السور</title>
 <script>(function(){var d=document.documentElement,u=null,m=/[#&]ui=(ar|en|es)(?=&|$)/.exec(location.hash);try{u=m?m[1]:localStorage.getItem('hifz-ui');if(m)localStorage.setItem('hifz-ui',u);}catch(e){if(m)u=m[1];}if(m){try{history.replaceState(history.state,'',location.href.split('#')[0]+location.hash.replace(/([#&])ui=(?:ar|en|es)(?=&|$)/,'$1').replace('&&','&').replace(/^#&/,'#').replace(/[#&]$/,''));}catch(e){}}if(u!=='en'&&u!=='es')u='ar';d.setAttribute('data-ui',u);var t=document.getElementsByTagName('title')[0],v=t&&t.getAttribute('data-'+u);if(v)document.title=v;})();</script>
+<script>(function(){var d=document.documentElement,v={};try{v=JSON.parse(localStorage.getItem('hifz-view')||'{}')||{};}catch(e){}var t=v.theme||'auto';if(t==='auto')t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'night':'light';if(t!=='night'&&t!=='black')t='light';d.setAttribute('data-theme',t);if(v.bold)d.setAttribute('data-bold','');if(v.plain)d.setAttribute('data-plain','');if(v.lead)d.setAttribute('data-lead',v.lead);if(+v.size>0)d.style.setProperty('--qscale',v.size);if(+v.ui>0)d.style.setProperty('--ui',v.ui);if(v.font)d.style.setProperty('--qfont','"'+String(v.font).replace(/["\\]/g,'')+'"');})();</script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#f3f0e8">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <!-- Qur'anic text: Tanzil Quran Text (Uthmani, version 1.1), tanzil.net, copied verbatim; see tanzil-license.txt -->
+<link rel="stylesheet" href="app/view.css">
 <script src="app/core.js" data-root="" data-cdn="https://audio-cdn.tarteel.ai/quran/surah/minshawy/murattal/mp3/NNN.mp3" defer></script>
+<script src="app/view.js" defer></script>
 <link rel="stylesheet" href="app/book.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Scheherazade+New:wght@400;500&display=swap" rel="stylesheet">
@@ -78,14 +81,9 @@ footer{margin-top:auto;padding-top:.9rem}
 
 <div class="tools ui">
 <a class="home" href="index.html" title="الصفحة الرئيسية" data-title-ar="الصفحة الرئيسية" data-title-en="Home" data-title-es="Inicio" aria-label="الصفحة الرئيسية" data-aria-label-ar="الصفحة الرئيسية" data-aria-label-en="Home" data-aria-label-es="Inicio" data-i18n-attr>⌂</a>
-<span><span class="tr"><span lang="ar">الخط:</span><span lang="en">Font:</span><span lang="es">Fuente:</span></span></span>
-<button data-font="Uthman Naskh" aria-pressed="true"><span class="tr"><span lang="ar">عثمان طه نسخ</span><span lang="en">Uthman Taha Naskh</span><span lang="es">Uthman Taha Naskh</span></span></button>
-<button data-font="Uthman Hafs"><span class="tr"><span lang="ar">مصحف المدينة (حفص)</span><span lang="en">Madinah Mushaf (Hafs)</span><span lang="es">Mushaf de Medina (Hafs)</span></span></button>
-<button data-font="Amiri Quran"><span class="tr"><span lang="ar">أميري قرآن</span><span lang="en">Amiri Quran</span><span lang="es">Amiri Quran</span></span></button>
-<button data-font="Scheherazade New"><span class="tr"><span lang="ar">شهرزاد</span><span lang="en">Scheherazade</span><span lang="es">Scheherazade</span></span></button>
-<span style="margin-inline-start:1rem"><span class="tr"><span lang="ar">الحجم:</span><span lang="en">Size:</span><span lang="es">Tamaño:</span></span></span>
-<button data-scale="-" title="تصغير الخط" data-title-ar="تصغير الخط" data-title-en="Smaller text" data-title-es="Texto más pequeño" aria-label="تصغير الخط" data-aria-label-ar="تصغير الخط" data-aria-label-en="Smaller text" data-aria-label-es="Texto más pequeño" data-i18n-attr>−</button>
-<button data-scale="+" title="تكبير الخط" data-title-ar="تكبير الخط" data-title-en="Larger text" data-title-es="Texto más grande" aria-label="تكبير الخط" data-aria-label-ar="تكبير الخط" data-aria-label-en="Larger text" data-aria-label-es="Texto más grande" data-i18n-attr>+</button>
+<button type="button" class="vw" data-view-open title="عرض النص: الوضع الليلي والحجم والخط" data-title-ar="عرض النص: الوضع الليلي والحجم والخط" data-title-en="Display: night mode, text size, font" data-title-es="Visualización: modo nocturno, tamaño, fuente" aria-label="عرض النص: الوضع الليلي والحجم والخط" data-aria-label-ar="عرض النص: الوضع الليلي والحجم والخط" data-aria-label-en="Display: night mode, text size, font" data-aria-label-es="Visualización: modo nocturno, tamaño, fuente" data-i18n-attr>Aa</button>
+<button type="button" class="vw" data-theme-toggle aria-pressed="false" title="الوضع الليلي" data-title-ar="الوضع الليلي" data-title-en="Night mode" data-title-es="Modo nocturno" aria-label="الوضع الليلي" data-aria-label-ar="الوضع الليلي" data-aria-label-en="Night mode" data-aria-label-es="Modo nocturno" data-i18n-attr>☾</button>
+<a class="vw" data-mushaf href="mushaf.html" title="المصحف: اذهب إلى صفحة" data-title-ar="المصحف: اذهب إلى صفحة" data-title-en="Mushaf: go to a page" data-title-es="Mushaf: ir a una página" aria-label="المصحف: اذهب إلى صفحة" data-aria-label-ar="المصحف: اذهب إلى صفحة" data-aria-label-en="Mushaf: go to a page" data-aria-label-es="Mushaf: ir a una página" data-i18n-attr><span class="tr"><span lang="ar">المصحف</span><span lang="en">Mushaf</span><span lang="es">Mushaf</span></span></a>
 <span class="ui-lang" role="group" aria-label="لغة الواجهة" data-aria-label-ar="لغة الواجهة" data-aria-label-en="Interface language" data-aria-label-es="Idioma de la interfaz" data-i18n-attr><button type="button" data-ui-set="en" lang="en" aria-pressed="false" title="الواجهة بالإنجليزية" data-title-ar="الواجهة بالإنجليزية" data-title-en="Interface in English" data-title-es="Interfaz en inglés" data-i18n-attr>EN</button><button type="button" data-ui-set="es" lang="es" aria-pressed="false" title="الواجهة بالإسبانية" data-title-ar="الواجهة بالإسبانية" data-title-en="Interface in Spanish" data-title-es="Interfaz en español" data-i18n-attr>ES</button><button type="button" data-ui-set="ar" lang="ar" aria-pressed="true" title="الواجهة بالعربية" data-title-ar="الواجهة بالعربية" data-title-en="Interface in Arabic" data-title-es="Interfaz en árabe" data-i18n-attr>AR</button></span>
 </div>
 <script>
