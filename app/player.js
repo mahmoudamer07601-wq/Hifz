@@ -16,6 +16,8 @@
    (Wake Lock) when the display setting asks for it.
    A play stops by a timer at its cut, or at the first timeupdate within 0.025 s of it (0.125 s
    while the page is hidden and the browser may hold timers back): inside the pause either way.
+   A pause from outside the app (a phone call, another app's sound) pauses the run with it, so one
+   tap on Play, here or on the lock screen, resumes it; a resume by the system resumes the run.
    window.HifzPlayer for the tests and the other scripts; window.HifzPage() = the page in view.
    Interface text in three languages, following the switch of tools/ui.py (window.hifzUI). */
 (function () {
@@ -196,6 +198,7 @@
 
   // ---------------------------------------------------------------- audio
   var au = new Audio(), src = null, run = null, timer = 0, gapTimer = 0, seeking = false, curA = 0, curW = null, lockedA = [];
+  var loading = false;   // a source is loading (use()): the pause its load() fires is the app's own
   au.preload = 'auto';
   try { au.preservesPitch = true; } catch (e) {}
   function pad(s) { s = String(s); while (s.length < 3) s = '0' + s; return s; }
@@ -219,8 +222,9 @@
       if (src && src.blob) URL.revokeObjectURL(src.url);
       src = s;
       var done = false;
+      loading = true;
       function fin(e) {
-        if (done) return; done = true;
+        if (done) return; done = true; loading = false;
         au.removeEventListener('loadedmetadata', fin); au.removeEventListener('error', fin);
         if (e && e.type === 'error') no(e); else ok();
       }
@@ -256,7 +260,18 @@
   au.addEventListener('seeked', function () { seeking = false; schedule(); follow(true); });
   au.addEventListener('timeupdate', function () { if (live()) { check(); follow(); } });
   au.addEventListener('playing', function () { schedule(); paint(); });
-  au.addEventListener('pause', function () { clearTimeout(timer); paint(); });
+  au.addEventListener('pause', function () {
+    clearTimeout(timer);
+    // paused from outside the app (a phone call, another app's sound, the system): the run is paused with it, so that
+    // Play here or on the lock screen resumes it with one tap.  The app's own pauses come with run.paused, a gap step,
+    // a finished or stopped run, or a load; the end of the file comes with au.ended.
+    if (live() && !loading && !au.ended) { var st = stepNow(); if (st && st.gap === undefined) { run.paused = true; clearTimers(); awake(false); } }
+    paint();
+  });
+  au.addEventListener('play', function () {
+    // resumed from outside (the system, after an interruption): the run resumes with it and stops at its cut again
+    if (run && !run.idle && run.paused && !loading) { var st = stepNow(); if (st && st.gap === undefined) { run.paused = false; msg(''); awake(true); paint(); } }
+  });
   au.addEventListener('ratechange', schedule);
   au.addEventListener('ended', function () { if (live()) next(); });
   au.addEventListener('error', function () {

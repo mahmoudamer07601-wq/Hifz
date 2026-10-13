@@ -7,7 +7,10 @@
      as a slip.  Matching compares letters only (marks dropped, alif forms, tāʾ marbūṭa, alif
      maqṣūra and hamza seats folded; dagger alif read as alif), with room for the recogniser's
      spelling (edit distance), and two words heard as one or one heard as two.  It checks the
-     words, not the tajweed.
+     words, not the tajweed.  A final result counts once even when the recogniser sends it again,
+     and a result that repeats the previous one before going on (Chrome on Android may give the
+     whole text again; the reciter may start the phrase again) counts only its new words, unless
+     the repeated words are what the text says next.
    - Record yourself: the microphone is recorded on this device only (MediaRecorder; kept in the
      browser, IndexedDB "hifz-rec", one recording per segment); play it back, the reciter's
      segment, or both one after the other.
@@ -99,14 +102,16 @@
     for (var i = 0; i < ws.length; i++) if (!ws[i].classList.contains('shown')) { at = i; break; }
     var rec = new SR();
     rec.lang = 'ar-SA'; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 1;
-    live = { sec: sec, rec: rec, btn: btn, words: ws, exp: ws.map(function (w) { return norm(w.textContent); }), at: at, okN: 0, missN: 0, stopped: false };
+    live = { sec: sec, rec: rec, btn: btn, words: ws, exp: ws.map(function (w) { return norm(w.textContent); }), at: at, okN: 0, missN: 0, stopped: false,
+             done: {}, last: [] };
     var me = live;
     rec.onresult = function (e) {
       if (live !== me) return;
       var interim = '';
       for (var r = e.resultIndex; r < e.results.length; r++) {
         var res = e.results[r], txt = res[0].transcript;
-        if (res.isFinal) feed(me, txt); else interim += txt;
+        if (!res.isFinal) interim += txt;
+        else if (!me.done[r]) { me.done[r] = true; feed(me, txt); }   // a final result counts once, even when sent again
       }
       status(sec, interim ? fmt(T('heard'), interim) : T('listening') + ' · ' + fmt(T('score'), nm(me.okN), nm(me.missN)));
     };
@@ -116,13 +121,23 @@
       else if (e.error === 'network') { status(sec, T('noNet'), true); stop(sec); }
       else if (e.error === 'audio-capture') { status(sec, T('noMic'), true); stop(sec); }
     };
-    rec.onend = function () { if (live === me && !me.stopped) { try { rec.start(); } catch (x) {} } };
+    rec.onend = function () { if (live === me && !me.stopped) { me.done = {}; try { rec.start(); } catch (x) {} } };   // a new session numbers its results anew
     try { rec.start(); } catch (x) { status(sec, T('noRec'), true); live = null; return; }
     btn.classList.add('busy', 'on'); btn.textContent = T('stopL');
     status(sec, T('listening') + ' — ' + T('privacy'));
   }
   function feed(me, txt) {
-    var heard = String(txt).split(/\s+/).map(norm).filter(function (x) { return x; });
+    var all = String(txt).split(/\s+/).map(norm).filter(function (x) { return x; });
+    // a result that repeats the previous one before going on (Chrome on Android may give the whole text again, or the
+    // reciter starts the phrase again): the repeated words are dropped, unless they are what the text says next
+    var prev = me.last, k = 0;
+    if (prev.length && all.length >= prev.length) {
+      while (k < prev.length && all[k] === prev[k]) k++;
+      if (k < prev.length) k = 0;
+      else { var fit = align(me.exp, all.slice(0, k), me.at); if (fit.ok.length === k && !fit.miss.length) k = 0; }
+    }
+    me.last = all;
+    var heard = all.slice(k);
     if (!heard.length) return;
     var r = align(me.exp, heard, me.at);
     r.ok.forEach(function (k) { var w = me.words[k]; w.classList.add('shown', 'ok'); w.classList.remove('miss'); me.okN++; });
