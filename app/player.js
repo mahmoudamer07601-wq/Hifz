@@ -8,14 +8,16 @@
      repeat    the range 1, 2, 3, 5, 7, 10 or 20 times, any typed count up to 99, or without end
      drill     each ayah N times before the range; chaining: 1, 1–2, 1–3 … ; link: the range
                starts with the last ayah before it (the junction with the previous segment)
-     gaps      after every play a silence as long as it (×1, ×1.5, ×2) to recite it back
-     speed     0.75–1.25 with the pitch kept; a sleep timer
+     gaps      after every play a silence as long as it takes at normal speed (×1, ×1.5, ×2) to
+               recite it back
+     speed     0.75, 0.85, 1, 1.15, 1.25, 1.5, 1.75 or 2 with the pitch kept; a sleep timer
    While it plays: the word being recited is lit (QUL's word timings, data "w"), the page follows
    it, a tap on a word plays from that word to the end of its segment, Focus shows one ayah at a
    time in large print, the lock screen's controls work (Media Session), and the screen stays on
    (Wake Lock) when the display setting asks for it.
    A play stops by a timer at its cut, or at the first timeupdate within 0.025 s of it (0.125 s
-   while the page is hidden and the browser may hold timers back): inside the pause either way.
+   while the page is hidden and the browser may hold timers back; both times the speed above 1×):
+   inside the pause either way.
    A pause from outside the app (a phone call, another app's sound) pauses the run with it, so one
    tap on Play, here or on the lock screen, resumes it; a resume by the system resumes the run.
    window.HifzPlayer for the tests and the other scripts; window.HifzPage() = the page in view.
@@ -100,7 +102,7 @@
   var P = { rep: 1, drill: 0, chain: false, gap: 0, link: false, rate: 1, sleep: 0, follow: true, scroll: true, tap: true };
   try { var sv = JSON.parse(localStorage.getItem(PK) || '{}'); for (var k in P) if (sv && sv[k] !== undefined) P[k] = sv[k]; } catch (e) {}
   function saveP() { try { localStorage.setItem(PK, JSON.stringify(P)); } catch (e) {} }
-  var REPS = [1, 2, 3, 5, 7, 10, 20, 0], DRILLS = [0, 2, 3, 5, 7, 10], GAPS = [0, 1, 1.5, 2], RATES = [0.75, 0.85, 1, 1.15, 1.25], SLEEPS = [0, 10, 20, 30, 60];
+  var REPS = [1, 2, 3, 5, 7, 10, 20, 0], DRILLS = [0, 2, 3, 5, 7, 10], GAPS = [0, 1, 1.5, 2], RATES = [0.75, 0.85, 1, 1.15, 1.25, 1.5, 1.75, 2], SLEEPS = [0, 10, 20, 30, 60];
 
   // ---------------------------------------------------------------- where things are
   function ayahAt(t) {
@@ -175,7 +177,8 @@
     var steps = [], loop = -1;
     function play(x0, x1, kind, n, of, t0) {
       steps.push({ t0: t0 !== undefined ? t0 : AT[x0 - 1][0], t1: AT[x1 - 1][1], a0: x0, a1: x1, kind: kind, n: n, of: of });
-      if (P.gap > 0 && kind !== 'here') steps.push({ gap: Math.min(120, P.gap * dur(x0, x1) / (P.rate || 1)), a0: x0, a1: x1 });
+      // the time to recite it back: its length at normal speed, whatever speed it plays at (2026-10-28)
+      if (P.gap > 0 && kind !== 'here') steps.push({ gap: Math.min(120, P.gap * dur(x0, x1)), a0: x0, a1: x1 });
     }
     if (r.kind === 'here') { play(r.a0, r.a1, 'here', 1, 1, r.t0); return { steps: steps, loop: -1 }; }
     if (r.kind === 'slips') {
@@ -245,7 +248,7 @@
   function check() {
     var st = stepNow();
     if (!live() || !st || st.gap !== undefined || seeking) return;
-    var early = document.hidden ? 0.125 : 0.025;
+    var early = (document.hidden ? 0.125 : 0.025) * Math.max(1, au.playbackRate || 1);   // the same moment ahead in real time at any speed
     if (now() >= st.t1 - early) next(); else schedule();
   }
   var seekGuard = 0;
@@ -516,6 +519,7 @@
       else txt = fmt(T('ayah'), nm(a)) + (st.of === 0 ? ' · ' + fmt(T('roundInf'), nm(run.round || 1)) : st.of > 1 ? ' · ' + fmt(T('round'), nm(st.n), nm(st.of)) : '');
       var pos = now() - st.t0, len = st.t1 - st.t0;
       txt += ' · ' + clock(pos) + ' / ' + clock(len);
+      if ((P.rate || 1) !== 1) txt += ' · ' + lab('×' + P.rate);       // the speed, when it is not the normal one
       fill.style.width = Math.max(0, Math.min(100, 100 * pos / len)).toFixed(1) + '%';
       if (D.j && D.j.charAt(a - 1) === 'x' && a < st.a1) txt += ' · ' + T('joined');
     }
