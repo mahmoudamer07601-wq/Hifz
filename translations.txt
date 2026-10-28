@@ -1,0 +1,27 @@
+The translations of the meanings shown in this app (a touch on an ayah, or the mouse resting on it)
+come from Tanzil.net (https://tanzil.net/trans/), copied unchanged:
+
+  en  Saheeh International (Tanzil id en.sahih)
+  es  Julio Cortés (Tanzil id es.cortes)
+
+Tanzil distributes them for non-commercial use, with the source shown and a link to its translations
+page so that readers can follow its corrections. Where each copy in the kit comes from:
+
+# Saheeh International: English translation of the meanings of the Qur'an (Tanzil id: en.sahih).
+# Text unchanged from Tanzil.net (https://tanzil.net/trans/en.sahih), as kept in two public copies that agree
+# on all 6,236 ayat: github.com/fawazahmed0/quran-api database/originals/en.sahih (commit 93e6f64, 2026-10-20)
+# and github.com/Kristories/quran fixtures/en/sahih/source.json (2022).  Taken into the kit 2026-10-28.
+# Tanzil distributes its translations for non-commercial use, unchanged, with the source shown and a link to
+# https://tanzil.net/trans/ so that readers can follow its corrections.
+# Format: sura|aya|text, one line per ayah, 6,236 lines.
+
+# Julio Cortés: traducción al español del Corán (Tanzil id: es.cortes).
+# Text unchanged from Tanzil.net (https://tanzil.net/trans/es.cortes), as kept in github.com/Kristories/quran
+# fixtures/es/cortes/source.json (2022), except 101:8, taken from the later copy in
+# github.com/fawazahmed0/quran-api database/originals/spa-juliocortes.txt (commit 93e6f64, 2026-10-20), which
+# reads "mientras" where the 2022 copy has the misprint "miemtras".  That later copy drops characters at the
+# ends of lines (the final punctuation, and the leading "Y.", "s.", "q.", "n." of 2:206, 38:1, 50:1, 68:1);
+# apart from these its text agrees with this one on every ayah.  Taken into the kit 2026-10-28.
+# Tanzil distributes its translations for non-commercial use, unchanged, with the source shown and a link to
+# https://tanzil.net/trans/ so that readers can follow its corrections.
+# Format: sura|aya|text, one line per ayah, 6,236 lines.

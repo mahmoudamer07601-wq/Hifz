@@ -12,9 +12,10 @@
                recite it back
      speed     0.75, 0.85, 1, 1.15, 1.25, 1.5, 1.75 or 2 with the pitch kept; a sleep timer
    While it plays: the word being recited is lit (QUL's word timings, data "w"), the page follows
-   it, a tap on a word plays from that word to the end of its segment, Focus shows one ayah at a
-   time in large print, the lock screen's controls work (Media Session), and the screen stays on
-   (Wake Lock) when the display setting asks for it.
+   it, a tap on a word plays from that word to the end of its segment (on a touch screen with the
+   translations on, the tap shows the translation card of app/translate.js, whose ▶ does it: playFrom),
+   Focus shows one ayah at a time in large print, the lock screen's controls work (Media Session),
+   and the screen stays on (Wake Lock) when the display setting asks for it.
    A play stops by a timer at its cut, or at the first timeupdate within 0.025 s of it (0.125 s
    while the page is hidden and the browser may hold timers back; both times the speed above 1×):
    inside the pause either way.
@@ -697,11 +698,16 @@
       var a = +w.getAttribute('data-a'), i = +w.getAttribute('data-i') || 0;
       if (!a) return;
       if (!i) { var nx = w.nextElementSibling; while (nx && !nx.hasAttribute('data-i')) nx = nx.nextElementSibling; if (nx && +nx.getAttribute('data-a') === a) i = +nx.getAttribute('data-i'); }
-      var g2 = W.segOf(a);
-      var t0 = Math.max(AT[a - 1][0], (i ? wordTime(a, i) : AT[a - 1][0]) - 0.06);
-      start({ kind: 'here', a0: a, a1: g2 ? g2[2] : a, t0: t0, id: g2 ? g2[0] : 0 });
+      playFrom(a, i);
     }
   });
+  // from word i of ayah a (i = 0: from the ayah's start) to the end of its segment (also ▶ in the translation card)
+  function playFrom(a, i) {
+    if (!a || !AT[a - 1]) return;
+    var g2 = W.segOf(a);
+    var t0 = Math.max(AT[a - 1][0], (i ? wordTime(a, i) : AT[a - 1][0]) - 0.06);
+    start({ kind: 'here', a0: a, a1: g2 ? g2[2] : a, t0: t0, id: g2 ? g2[0] : 0 });
+  }
 
   // ---------------------------------------------------------------- focus view
   var fv = null;
@@ -782,7 +788,7 @@
   if (window.hifzUI) window.hifzUI.on(function () { paint(); if (sheet && !sheet.hidden) paintSheet(); media(); });
   window.HifzPlayer = {
     audio: au, settings: P, set: function (o) { for (var k in o) P[k] = o[k]; saveP(); replan(); paint(); },
-    start: start, stop: stop, toggle: toggle, jump: jump, range: function () { return run ? run.r : R; }, rangeOf: rangeOf,
+    start: start, stop: stop, toggle: toggle, jump: jump, playFrom: playFrom, range: function () { return run ? run.r : R; }, rangeOf: rangeOf,
     plan: function () { return run ? run.plan : null; }, step: function () { return run ? run.i : -1; },
     state: function () { return { running: !!run && !run.idle, paused: !!run && !!run.paused, a: curA, w: curW ? +curW.getAttribute('data-i') : 0, t: now(), src: src && src.key, seeking: seeking }; },
     ayahAt: ayahAt, wordAt: wordAt, now: now, focus: openFocus, label: rangeLabel, current: function () { return run; }
