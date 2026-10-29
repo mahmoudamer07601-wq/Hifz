@@ -154,3 +154,23 @@ html .player{font-size:calc(14px * var(--ui,1))}
 .vpop .vbtn{flex:none}
 .vpop p{margin:.2rem 0 .6rem;color:var(--muted,#5a5548);font-size:.92em}
 @media print{.vsheet,.vshade,.vpop{display:none!important}}
+
+/* ---- prayer (app/athan.js, 2026-10-29): the toolbar link to salat.html and the athan banner ---- */
+.tools .sl{gap:.3em}
+.tools .sl .sl-i{font-size:1.1em;line-height:1}
+.tools .sl .sl-t{font-variant-numeric:tabular-nums}
+.tools .sl .sl-t:empty{display:none}
+.tools .sl[aria-current=page]{background:#3d3a33;color:#fff;border-color:#3d3a33}
+@media (max-width:700px){.tools .sl .sl-t{display:none}}
+.athb{position:fixed;top:.5rem;left:50%;transform:translateX(-50%);z-index:70;width:min(36rem,calc(100% - 1rem));display:flex;flex-wrap:wrap;
+ align-items:center;gap:.5rem .6rem;padding:.75rem .85rem;border:2px solid var(--accent,#8a6a1f);border-radius:14px;background:var(--sheet,#fffdf6);
+ color:var(--sheet-ink,#2b2822);box-shadow:0 12px 36px rgba(0,0,0,.35);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+ font-size:calc(16px * var(--ui,1));line-height:1.4}
+.athb[hidden]{display:none}
+.athb-t{flex:1 1 12rem;font-weight:700}
+.athb button{min-height:2.6em;padding:0 .9em;border:1px solid var(--ctl-line,#b9b2a1);border-radius:10px;background:var(--ctl,#fff);
+ color:var(--ctl-ink,#3d3a33);font:inherit;font-weight:600;cursor:pointer}
+.athb button[hidden]{display:none}
+.athb .athb-stop,.athb .athb-play{background:var(--ctl-on,#3d3a33);color:var(--ctl-on-ink,#fff);border-color:var(--ctl-on,#3d3a33)}
+.athb .athb-x{min-width:2.6em;padding:0;font-size:1.2em}
+@media print{.athb{display:none!important}}

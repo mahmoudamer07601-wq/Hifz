@@ -4,7 +4,8 @@
      recording saved on this device (IndexedDB "hifz-audio": store "files" holds the mp3s, store
      "meta" what each one is), else the recording's address (data-cdn, NNN = the surah, the same
      recording the ledger's cut times were measured on);
-   - keeps the browser's install prompt for the Install button of the home page.
+   - keeps the browser's install prompt for the Install button of the home page;
+   - loads app/athan.js (prayer times and the athan) on every page.
    The script tag carries data-root (the app's top folder relative to the page) and data-cdn. */
 (function () {
   'use strict';
@@ -103,4 +104,10 @@
     A.install = null;
     document.dispatchEvent(new CustomEvent('hifz-installed'));
   });
+  // the prayer times and the athan on every page (app/athan.js, 2026-10-29); salat.html loads it itself too
+  if (document.head && !window.HifzSalat) {
+    var sa = document.createElement('script');
+    sa.src = root + 'app/athan.js';
+    document.head.appendChild(sa);
+  }
 })();
