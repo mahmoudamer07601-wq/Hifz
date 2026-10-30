@@ -376,6 +376,32 @@
       run.paused = false; go(run.i);
     }
   }
+  // The reader moved to ayah a with the arrows of the toolbar (app/nav.js, 2026-10-30).  A recitation that
+  // is running goes with him: when what it plays holds a (the whole surah, a unit, chosen ayat…) it goes on
+  // from there, in the same round; otherwise it starts the same kind of range there (that segment, unit,
+  // page or quarter; a segment after chosen ayat or the slips).  A paused one waits there for Play; with
+  // nothing running, the chosen range moves there.
+  function moved(a) {
+    a = Math.max(1, Math.min(N, Math.round(+a) || 1));
+    var LOC = /^(seg|unit|page|quarter|surah)$/;
+    if (!run || run.idle) {
+      if (R && LOC.test(R.kind) && R.kind !== 'surah') { R = rangeOf(R.kind, a); if (run) run.r = R; }
+      paint(); return;
+    }
+    var st = stepNow(), t = AT[a - 1][0], pl = run.plan, n = pl.length, i, j = -1, x;
+    if (st && st.gap === undefined && st.a0 <= a && a <= st.a1) { seekTo(t); paint(); return; }
+    for (i = 0; i < n && j < 0; i++) {         // the next play of the range that holds a, from the current step on
+      x = pl[(run.i + i) % n];
+      if (x.gap === undefined && x.kind === 'range' && x.a0 <= a && a <= x.a1) j = (run.i + i) % n;
+    }
+    if (j >= 0) {
+      if (run.paused) { run.i = j; seekTo(t); paint(); return; }
+      go(j); seekTo(t); return;
+    }
+    var r = rangeOf(LOC.test(run.r.kind) ? run.r.kind : 'seg', a);
+    if (run.paused) { stop(); R = r; paint(); return; }
+    start(r);
+  }
 
   // ---------------------------------------------------------------- follow-along
   var raf = 0, lastUser = 0;
@@ -788,7 +814,7 @@
   if (window.hifzUI) window.hifzUI.on(function () { paint(); if (sheet && !sheet.hidden) paintSheet(); media(); });
   window.HifzPlayer = {
     audio: au, settings: P, set: function (o) { for (var k in o) P[k] = o[k]; saveP(); replan(); paint(); },
-    start: start, stop: stop, toggle: toggle, jump: jump, playFrom: playFrom, range: function () { return run ? run.r : R; }, rangeOf: rangeOf,
+    start: start, stop: stop, toggle: toggle, jump: jump, moved: moved, looked: function () { lastUser = Date.now(); }, playFrom: playFrom, range: function () { return run ? run.r : R; }, rangeOf: rangeOf,
     plan: function () { return run ? run.plan : null; }, step: function () { return run ? run.i : -1; },
     state: function () { return { running: !!run && !run.idle, paused: !!run && !!run.paused, a: curA, w: curW ? +curW.getAttribute('data-i') : 0, t: now(), src: src && src.key, seeking: seeking }; },
     ayahAt: ayahAt, wordAt: wordAt, now: now, focus: openFocus, label: rangeLabel, current: function () { return run; }
