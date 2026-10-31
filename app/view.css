@@ -155,6 +155,24 @@ html .player{font-size:calc(14px * var(--ui,1))}
 .vpop p{margin:.2rem 0 .6rem;color:var(--muted,#5a5548);font-size:.92em}
 @media print{.vsheet,.vshade,.vpop{display:none!important}}
 
+/* ---- "→ label ←" groups (2026-10-30): the arrows of the surah files (app/nav.js) and the juzʾ of the Mushaf (app/mushaf.js);
+   the arrows keep the order of an Arabic book in every interface language: → the previous one, ← the next one ---- */
+.hn-g{display:inline-flex;align-items:stretch;direction:rtl;min-height:2.75em;border:1px solid var(--ctl-line);border-radius:999px;
+ background:var(--ctl);color:var(--ctl-ink);overflow:hidden;vertical-align:middle}
+.hn-g :is(a,button){display:inline-flex;align-items:center;justify-content:center;margin:0;border:0;border-radius:0;background:none;color:inherit;
+ font:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;cursor:pointer}
+.hn-g .hn-b{min-width:1.6em;padding:0 .1em;font-size:1.2em;font-weight:700;line-height:1}
+.hn-g .hn-b:is([aria-disabled=true],:disabled){opacity:.28;cursor:default}
+.hn-g .hn-l{flex-direction:column;min-width:3em;padding:.12em .2em;border-inline:1px solid var(--line,#d8d2c2);line-height:1.12;
+ text-align:center;white-space:nowrap}
+.hn-g .hn-c{font-size:.84em;font-weight:600;color:var(--muted,#5a5548)}
+.hn-g .hn-v{font-size:1.1em;font-weight:700;font-variant-numeric:tabular-nums}
+.hn-g .hn-z{display:block;height:0;overflow:hidden;visibility:hidden;font-size:1.1em;font-weight:700}
+html[data-ui=en] .hn-g .hn-l,html[data-ui=es] .hn-g .hn-l{direction:ltr}
+@media (hover:hover){.hn-g :is(a[href],button:not(:disabled)):hover{background:var(--ctl-on);color:var(--ctl-on-ink)}
+ .hn-g :is(a[href],button:not(:disabled)):hover .hn-c{color:inherit}}
+.hn-g :is(a,button):focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+
 /* ---- prayer (app/athan.js, 2026-10-29): the toolbar link to salat.html and the athan banner ---- */
 .tools .sl{gap:.3em}
 .tools .sl .sl-i{font-size:1.1em;line-height:1}

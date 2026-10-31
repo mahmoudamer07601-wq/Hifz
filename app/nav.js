@@ -17,6 +17,10 @@
    the file), and the address keeps the place (#sNN, #a=s:a), so a reload opens there.
    A recitation that is running moves with the reader to the segment or juzʾ he moves to (window.HifzPlayer.moved);
    the top of the file (the index) leaves it where it is.
+   Since 2026-10-31 the row starts with 📖, the read-through view (at the learner's request: "view the whole surah in
+   reading mode without any interruptions after I have already mastered segment by segment"): the segments as one
+   text, without their rows, titles, clues or keys (app/book.css html[data-read]), kept per surah on this device; the
+   arrows work the same in it (a segment opens at its first words, lit).
    Interface text in three languages, following the switch of tools/ui.py (window.hifzUI). */
 (function () {
   'use strict';
@@ -36,7 +40,8 @@
       gPrev: 'المقطع السابق: {0}', gNext: 'المقطع التالي: {0}', gNo0: 'لا مقطع قبله في هذه السورة', gNo1: 'لا مقطع بعده في هذه السورة',
       gTop: 'أول المقطع {0}', gIdx: 'فهرس المقاطع',
       jPrev: 'الجزء السابق: {0}، أوله {1} {2}', jNext: 'الجزء التالي: {0}، أوله {1} {2}', jNo0: 'لا جزء قبله', jNo1: 'لا جزء بعده',
-      jTop: 'أول الجزء {0}: {1} {2}'
+      jTop: 'أول الجزء {0}: {1} {2}',
+      rdOff: 'قراءة متصلة: السورة كلها نصاً واحداً بلا فواصل', rdOn: 'القراءة المتصلة مفعّلة: اضغط للعودة إلى المقاطع'
     },
     en: {
       s: 'Surah', g: 'Segment', j: 'Juzʾ', index: 'Index',
@@ -45,7 +50,8 @@
       gPrev: 'Previous segment: {0}', gNext: 'Next segment: {0}', gNo0: 'No segment before this one in this surah',
       gNo1: 'No segment after this one in this surah', gTop: 'Start of segment {0}', gIdx: 'Segment index',
       jPrev: 'Previous juzʾ: {0}, from {1} {2}', jNext: 'Next juzʾ: {0}, from {1} {2}', jNo0: 'No juzʾ before this one', jNo1: 'No juzʾ after this one',
-      jTop: 'Start of juzʾ {0}: {1} {2}'
+      jTop: 'Start of juzʾ {0}: {1} {2}',
+      rdOff: 'Read through: the whole surah as one text, without breaks', rdOn: 'Read-through is on: tap to go back to the segments'
     },
     es: {
       s: 'Sura', g: 'Segmento', j: 'Yuz', index: 'Índice',
@@ -54,7 +60,8 @@
       gPrev: 'Segmento anterior: {0}', gNext: 'Segmento siguiente: {0}', gNo0: 'No hay segmento antes de este en esta sura',
       gNo1: 'No hay segmento después de este en esta sura', gTop: 'Inicio del segmento {0}', gIdx: 'Índice de segmentos',
       jPrev: 'Yuz anterior: {0}, desde {1} {2}', jNext: 'Yuz siguiente: {0}, desde {1} {2}', jNo0: 'No hay yuz antes de este', jNo1: 'No hay yuz después de este',
-      jTop: 'Inicio del yuz {0}: {1} {2}'
+      jTop: 'Inicio del yuz {0}: {1} {2}',
+      rdOff: 'Lectura seguida: toda la sura como un solo texto, sin cortes', rdOn: 'Lectura seguida activada: toque para volver a los segmentos'
     }
   };
   function T(k) { return TX[lang()][k]; }
@@ -106,7 +113,8 @@
   }
   function where() {              // the pin holds while its ayah is on screen (or not yet reached: a landing to come)
     if (pin) { if (onScreen(pin.a)) pin.seen = true; else if (pin.seen) pin = null; }
-    return pin || probe();
+    var w = pin || probe();
+    return w.k === 0 && reading() && K ? { a: 1, k: 1 } : w;   // read through: the text starts at once, no index
   }
 
   // ---------------------------------------------------------------- the arrows
@@ -172,12 +180,19 @@
       pin = null;
       window.scrollTo(0, 0);
       address('');
-    } else if (to.sec) {
+    } else if (to.sec && !reading()) {
       var sec = secOf(to.k);
       if (!sec) return;
       sec.scrollIntoView({ block: 'start' });
       pin = { a: to.a, k: to.k };
       address(to.href);
+    } else if (to.sec) {            // read through: no header to land on; the line of its first words, lit
+      var w0 = W.words(to.a)[0];
+      if (!w0) return;
+      window.scrollTo(0, Math.max(0, window.scrollY + lineTop(w0) - toolsH() - 10));
+      pin = { a: to.a, k: to.k };
+      address(to.href);
+      flash(to.a);
     } else {
       var w = W.words(to.a)[0];
       if (!w) return;
@@ -203,6 +218,43 @@
     go(to);
   });
 
+  // ---------------------------------------------------------------- the read-through view (2026-10-31)
+  // 📖 at the head of the row: the whole surah as one text (html[data-read], app/book.css), kept for this surah on
+  // this device (localStorage "hifz-read" = {surah: 1}, read before the page is drawn by tools/ui.py VIEW_JS); the
+  // ayah at the top of the screen stays at the top when it is switched; a segment in test mode leaves it.
+  var RK = 'hifz-read', rdb = bar.querySelector('.hn-rd');
+  function reading() { return de.hasAttribute('data-read'); }
+  function paintRead() {
+    if (!rdb) return;
+    rdb.removeAttribute('data-i18n-attr');
+    var on = reading(), t = T(on ? 'rdOn' : 'rdOff');
+    rdb.setAttribute('aria-pressed', on ? 'true' : 'false'); rdb.title = t; rdb.setAttribute('aria-label', t);
+  }
+  function setReading(on) {
+    on = !!on;
+    if (on === reading()) return;
+    var at = where();
+    if (on && window.HifzTest && window.HifzTest.leave) {
+      [].forEach.call(document.querySelectorAll('section.seg.testing'), function (sec) { try { window.HifzTest.leave(sec); } catch (e) {} });
+    }
+    if (window.HifzTranslate && window.HifzTranslate.hide) { try { window.HifzTranslate.hide(); } catch (e) {} }
+    if (on) de.setAttribute('data-read', ''); else de.removeAttribute('data-read');
+    var r = {};
+    try { r = JSON.parse(localStorage.getItem(RK) || '{}') || {}; } catch (e) { r = {}; }
+    if (on) r[S] = 1; else delete r[S];
+    try { localStorage.setItem(RK, JSON.stringify(r)); } catch (e) {}
+    paintRead();
+    if ((at.k === 0 && !pin) || window.scrollY < 10) { pin = null; window.scrollTo(0, 0); }   // at the top it stays at the top
+    else {
+      var w = W.words(at.a)[0];
+      if (w) { window.scrollTo(0, Math.max(0, window.scrollY + lineTop(w) - toolsH() - 10)); pin = { a: at.a, k: at.k || kOf(at.a) }; }
+    }
+    if (window.HifzPlayer && window.HifzPlayer.looked) { try { window.HifzPlayer.looked(); } catch (e) {} }
+    update(true);
+  }
+  if (rdb) rdb.addEventListener('click', function () { setReading(!reading()); });
+  paintRead();
+
   // ---------------------------------------------------------------- keeping up with the page
   var raf = 0;
   function later() { if (!raf) raf = requestAnimationFrame(function () { raf = 0; update(); }); }
@@ -218,7 +270,7 @@
     if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
     if (/^(Arrow(Up|Down)|Page(Up|Down)|Home|End| )$/.test(e.key)) drop();
   });
-  if (window.hifzUI) window.hifzUI.on(function () { update(true); });
+  if (window.hifzUI) window.hifzUI.on(function () { paintRead(); update(true); });
 
   // the place the address opens at: a segment (#sNN, from a juzʾ arrow of another file) or an ayah (#a=s:a,
   // where tools/refs.py lands); a segment is landed on again once the fonts have changed the lines
@@ -237,5 +289,6 @@
     }
   })();
   update(true);
-  window.HifzNav = { update: update, where: where, go: function (k, x) { var g = groups[k]; if (g && g[x] && g[x]._to) g[x].click(); } };
+  window.HifzNav = { update: update, where: where, reading: reading, setReading: setReading,
+    go: function (k, x) { var g = groups[k]; if (g && g[x] && g[x]._to) g[x].click(); } };
 })();

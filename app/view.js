@@ -4,7 +4,9 @@
      ui.VIEW_JS and here after every change: theme (auto follows the phone's dark mode, light,
      night, black), text size, line spacing, font, bold letters, tajweed colours on or off, the
      size of the controls, keeping the screen on while practising, and on the surah files which
-     translations a touch or the mouse shows (app/translate.js; 2026-10-28).
+     translations a touch or the mouse shows (app/translate.js; 2026-10-28) and whether the tajweed
+     colour key follows each segment (html[data-nolegend]; 2026-10-31, at the learner's request: off
+     for those who know the colours, so that one segment runs on into the next).
    - The toolbar's Aa button opens the display panel; ☾ switches night mode on and off; "Mushaf"
      opens a small box to go to any page of the Mushaf (mushaf.html), on the page in view.
    - window.HifzView = {get(), set(patch), on(fn), theme()} for the other scripts.
@@ -16,23 +18,23 @@
                ['Uthman Hafs', 'مصحف المدينة (حفص)', 'Madinah Mushaf (Hafs)', 'Mushaf de Medina (Hafs)'],
                ['Amiri Quran', 'أميري قرآن', 'Amiri Quran', 'Amiri Quran'],
                ['Scheherazade New', 'شهرزاد', 'Scheherazade', 'Scheherazade']];
-  var DEF = { theme: 'auto', size: 1, lead: '1', font: 'Uthman Naskh', bold: false, plain: false, ui: 1, awake: true, tr: 'both' };
+  var DEF = { theme: 'auto', size: 1, lead: '1', font: 'Uthman Naskh', bold: false, plain: false, ui: 1, awake: true, tr: 'both', legend: true };
   var TX = {
     ar: { title: 'عرض النص', theme: 'الوضع', light: 'نهاري', night: 'ليلي', black: 'أسود', auto: 'حسب الجهاز',
       size: 'حجم الخط', lead: 'تباعد الأسطر', l1: 'عادي', l2: 'واسع', l3: 'أوسع', font: 'الخط', bold: 'حروف عريضة',
-      colors: 'ألوان التجويد', ui: 'حجم الأزرار', u1: 'عادي', u2: 'كبير', u3: 'أكبر', awake: 'إبقاء الشاشة مضاءة أثناء التلاوة والاختبار',
+      colors: 'ألوان التجويد', legend: 'مفتاح ألوان التجويد بعد كل مقطع', ui: 'حجم الأزرار', u1: 'عادي', u2: 'كبير', u3: 'أكبر', awake: 'إبقاء الشاشة مضاءة أثناء التلاوة والاختبار',
       done: 'تم', smaller: 'أصغر', larger: 'أكبر', goTitle: 'المصحف', go: 'اذهب', page: 'صفحة', pgLbl: 'رقم الصفحة (١–٦٠٤)',
       cur: 'الصفحة الحالية: {0}', R: 'يمين', L: 'يسار', nightOn: 'الوضع الليلي: مفعّل', nightOff: 'الوضع الليلي',
       tr: 'ترجمة المعاني عند لمس الآية أو المرور عليها بالفأرة', trBoth: 'الإنجليزية والإسبانية', trEn: 'الإنجليزية', trEs: 'الإسبانية', trOff: 'لا' },
     en: { title: 'Display', theme: 'Mode', light: 'Light', night: 'Night', black: 'Black', auto: 'Like the device',
       size: 'Text size', lead: 'Line spacing', l1: 'Normal', l2: 'Wide', l3: 'Wider', font: 'Font', bold: 'Bold letters',
-      colors: 'Tajweed colours', ui: 'Button size', u1: 'Normal', u2: 'Large', u3: 'Larger', awake: 'Keep the screen on while reciting and testing',
+      colors: 'Tajweed colours', legend: 'Tajweed colour key after each segment', ui: 'Button size', u1: 'Normal', u2: 'Large', u3: 'Larger', awake: 'Keep the screen on while reciting and testing',
       done: 'Done', smaller: 'Smaller', larger: 'Larger', goTitle: 'Mushaf', go: 'Go', page: 'Page', pgLbl: 'Page number (1–604)',
       cur: 'Current page: {0}', R: 'right', L: 'left', nightOn: 'Night mode: on', nightOff: 'Night mode',
       tr: 'Translation when you touch an ayah or rest the mouse on it', trBoth: 'English and Spanish', trEn: 'English', trEs: 'Spanish', trOff: 'Off' },
     es: { title: 'Visualización', theme: 'Modo', light: 'Claro', night: 'Noche', black: 'Negro', auto: 'Como el dispositivo',
       size: 'Tamaño del texto', lead: 'Interlineado', l1: 'Normal', l2: 'Amplio', l3: 'Más amplio', font: 'Fuente', bold: 'Letras en negrita',
-      colors: 'Colores del tajwid', ui: 'Tamaño de los botones', u1: 'Normal', u2: 'Grande', u3: 'Más grande',
+      colors: 'Colores del tajwid', legend: 'Leyenda de colores del tajwid tras cada segmento', ui: 'Tamaño de los botones', u1: 'Normal', u2: 'Grande', u3: 'Más grande',
       awake: 'Mantener la pantalla encendida al recitar y practicar',
       done: 'Listo', smaller: 'Más pequeño', larger: 'Más grande', goTitle: 'Mushaf', go: 'Ir', page: 'Página', pgLbl: 'Número de página (1–604)',
       cur: 'Página actual: {0}', R: 'derecha', L: 'izquierda', nightOn: 'Modo nocturno: activado', nightOff: 'Modo nocturno',
@@ -63,6 +65,7 @@
     de.setAttribute('data-theme', t);
     if (S.bold) de.setAttribute('data-bold', ''); else de.removeAttribute('data-bold');
     if (S.plain) de.setAttribute('data-plain', ''); else de.removeAttribute('data-plain');
+    if (S.legend === false) de.setAttribute('data-nolegend', ''); else de.removeAttribute('data-nolegend');
     if (S.lead && S.lead !== '1') de.setAttribute('data-lead', S.lead); else de.removeAttribute('data-lead');
     de.style.setProperty('--qscale', String(+S.size || 1));
     de.style.setProperty('--ui', String(+S.ui || 1));
@@ -112,7 +115,9 @@
     sheet.appendChild(group('size', st));
     sheet.appendChild(group('lead', seg('lead', [['1', 'l1'], ['2', 'l2'], ['3', 'l3']])));
     sheet.appendChild(group('font', seg('font', FONTS.map(function (f) { return [f[0], 'font:' + f[0]]; }))));
-    var sws = el('div', 'vg'); sws.appendChild(sw('colors', 'colors')); sws.appendChild(sw('bold', 'bold')); sws.appendChild(sw('awake', 'awake'));
+    var sws = el('div', 'vg'); sws.appendChild(sw('colors', 'colors'));
+    if (document.getElementById('hifz-data')) sws.appendChild(sw('legend', 'legend'));   // the surah files (2026-10-31)
+    sws.appendChild(sw('bold', 'bold')); sws.appendChild(sw('awake', 'awake'));
     sheet.appendChild(sws);
     sheet.appendChild(group('ui', seg('ui', [['1', 'u1'], ['1.25', 'u2'], ['1.5', 'u3']])));
     if (document.getElementById('hifz-data'))      // the surah files: the translation card of app/translate.js

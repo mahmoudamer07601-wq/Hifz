@@ -10,6 +10,9 @@
    - "Dark page" shows the scan inverted (light text on a dark page, colours kept), on by itself in
      the night and black modes of the display settings (app/view.js).
    - "Open the text" opens the page's first ayah in its surah file.
+   - The juzʾ arrows "→ الجزء N ←" (2026-10-31, at the learner's request: "jump from juz' to juz' by arrows"): the
+     first page of the previous and the next juzʾ (data "jz": [surah, ayah, page] of the 30 starts); the label
+     goes to the first page of the juzʾ shown, which is the last juzʾ starting on this page or before it.
    Interface text in three languages, following the switch of tools/ui.py (window.hifzUI). */
 (function () {
   'use strict';
@@ -17,9 +20,15 @@
   if (!node) return;
   var D = JSON.parse(node.textContent), NP = D.pages.length, de = document.documentElement;
   var TX = {
-    ar: { info: 'سورة {0} · الجزء {1} · الحزب {2}', pg: 'ص {0} · {1}', R: 'يمين', L: 'يسار', err: 'تعذّر تحميل صفحة {0}: لا اتصال؟', q: ['', '¼', '½', '¾'] },
-    en: { info: 'Surah {0} · Juzʾ {1} · Ḥizb {2}', pg: 'p. {0} · {1}', R: 'right', L: 'left', err: "Page {0} couldn't load: offline?", q: ['', '¼', '½', '¾'] },
-    es: { info: 'Sura {0} · Yuz {1} · Ḥizb {2}', pg: 'pág. {0} · {1}', R: 'derecha', L: 'izquierda', err: 'No se pudo cargar la página {0}: ¿sin conexión?', q: ['', '¼', '½', '¾'] }
+    ar: { info: 'سورة {0} · الجزء {1} · الحزب {2}', pg: 'ص {0} · {1}', R: 'يمين', L: 'يسار', err: 'تعذّر تحميل صفحة {0}: لا اتصال؟', q: ['', '¼', '½', '¾'],
+      j: 'الجزء', jPrev: 'الجزء السابق: {0}، أوله {1} {2} (ص {3})', jNext: 'الجزء التالي: {0}، أوله {1} {2} (ص {3})', jTop: 'أول الجزء {0}: {1} {2} (ص {3})',
+      jNo0: 'لا جزء قبله', jNo1: 'لا جزء بعده' },
+    en: { info: 'Surah {0} · Juzʾ {1} · Ḥizb {2}', pg: 'p. {0} · {1}', R: 'right', L: 'left', err: "Page {0} couldn't load: offline?", q: ['', '¼', '½', '¾'],
+      j: 'Juzʾ', jPrev: 'Previous juzʾ: {0}, from {1} {2} (p. {3})', jNext: 'Next juzʾ: {0}, from {1} {2} (p. {3})', jTop: 'Start of juzʾ {0}: {1} {2} (p. {3})',
+      jNo0: 'No juzʾ before this one', jNo1: 'No juzʾ after this one' },
+    es: { info: 'Sura {0} · Yuz {1} · Ḥizb {2}', pg: 'pág. {0} · {1}', R: 'derecha', L: 'izquierda', err: 'No se pudo cargar la página {0}: ¿sin conexión?', q: ['', '¼', '½', '¾'],
+      j: 'Yuz', jPrev: 'Yuz anterior: {0}, desde {1} {2} (pág. {3})', jNext: 'Yuz siguiente: {0}, desde {1} {2} (pág. {3})', jTop: 'Inicio del yuz {0}: {1} {2} (pág. {3})',
+      jNo0: 'No hay yuz antes de este', jNo1: 'No hay yuz después de este' }
   };
   function lang() { var u = de.getAttribute('data-ui'); return u === 'en' || u === 'es' ? u : 'ar'; }
   function T(k) { return TX[lang()][k]; }
@@ -43,6 +52,24 @@
   var spread = document.querySelector('.spread'), inp = document.querySelector('.mb-p'), info = document.querySelector('.mb-info');
   var bTwo = document.querySelector('.mb-two'), bDark = document.querySelector('.mb-dark'), bText = document.querySelector('.mb-text');
   var bPrev = document.querySelector('.mb-prev'), bNext = document.querySelector('.mb-next');
+  // the juzʾ arrows (2026-10-31): the juzʾ of a page is the last one that starts on it or before it, so that a page
+  // where a juzʾ begins half-way down counts as that juzʾ and ← always moves on
+  var JZ = D.jz || [], jg = document.querySelector('.mb-juz');
+  var jP = jg && jg.querySelector('.hn-p'), jL = jg && jg.querySelector('.hn-l'), jN = jg && jg.querySelector('.hn-x');
+  if (jg) [jP, jL, jN].forEach(function (b) { b.removeAttribute('data-i18n-attr'); });
+  function iso(t) { return lang() === 'ar' ? t : '\u2068' + t + '\u2069'; }
+  function juzOfPage(q) { var j = 1; for (var i = 0; i < JZ.length; i++) if (JZ[i][2] <= q) j = i + 1; return j; }
+  function jt(t, j) { var e = JZ[j - 1]; return fmt(T(t), nm(j), iso(D.names[String(e[0])] || ''), nm(e[1]), nm(e[2])); }
+  function paintJuz() {
+    if (!jg || JZ.length !== 30) return;
+    var j = juzOfPage(p);
+    jL.querySelector('.hn-c').textContent = T('j');
+    jL.querySelector('.hn-v').textContent = nm(j);
+    jP.disabled = j <= 1; jN.disabled = j >= 30;
+    [[jP, j > 1 ? jt('jPrev', j - 1) : T('jNo0')], [jL, jt('jTop', j)], [jN, j < 30 ? jt('jNext', j + 1) : T('jNo1')]].forEach(function (x) {
+      x[0].title = x[1]; x[0].setAttribute('aria-label', x[1]);
+    });
+  }
 
   function shown() {
     if (!two()) return [p];
@@ -82,6 +109,7 @@
       ' · ' + fmt(T('pg'), nm(p), T(side(p)));
     inp.value = p;
     bPrev.disabled = p <= 1; bNext.disabled = p >= NP;
+    paintJuz();
     bTwo.setAttribute('aria-pressed', two() ? 'true' : 'false');
     bDark.setAttribute('aria-pressed', dark() ? 'true' : 'false');
     var pad = ('00' + s).slice(-3);
@@ -101,6 +129,11 @@
   function step(d) { go(two() ? (d > 0 ? (p % 2 ? p + 2 : p + 1) : (p % 2 ? p - 2 : p - 3)) : p + d); }
   bPrev.addEventListener('click', function () { step(-1); });
   bNext.addEventListener('click', function () { step(1); });
+  if (jg) {
+    jP.addEventListener('click', function () { var j = juzOfPage(p); if (j > 1) go(JZ[j - 2][2]); });
+    jN.addEventListener('click', function () { var j = juzOfPage(p); if (j < 30) go(JZ[j][2]); });
+    jL.addEventListener('click', function () { go(JZ[juzOfPage(p) - 1][2]); });
+  }
   document.querySelector('.mb-go').addEventListener('submit', function (e) { e.preventDefault(); go(Math.round(+inp.value || p)); inp.blur(); });
   bTwo.addEventListener('click', function () { opt.two = two() ? 'off' : 'on'; saveOpt(); render(); });
   bDark.addEventListener('click', function () { opt.dark = dark() ? 'off' : 'on'; saveOpt(); spread.classList.toggle('dark', dark()); paint(); });
@@ -122,6 +155,6 @@
   if (window.HifzView) window.HifzView.on(function () { spread.classList.toggle('dark', dark()); paint(); });
   if (window.hifzUI) window.hifzUI.on(function () { render(); });
   window.HifzPage = function () { return p; };
-  window.HifzMushaf = { go: go, page: function () { return p; }, shown: shown };
+  window.HifzMushaf = { go: go, page: function () { return p; }, shown: shown, juz: function () { return juzOfPage(p); } };
   render();
 })();
