@@ -102,7 +102,8 @@
     }
     var k = Math.round(ws.length * pct / 100), hide = {};
     sec._fadeOrder.slice(0, k).forEach(function (i) { hide[i] = true; });
-    ws.forEach(function (w, i) { w.classList.toggle('fd', !!hide[i]); });
+    // a fresh round: words shown earlier (Show all, a tap, a recitation check) are blanked again
+    ws.forEach(function (w, i) { w.classList.toggle('fd', !!hide[i]); w.classList.remove('shown', 'help', 'ok', 'miss'); });
     [].forEach.call(sec.querySelectorAll('.tb-fade [data-f]'), function (b) { b.setAttribute('aria-pressed', +b.getAttribute('data-f') === pct ? 'true' : 'false'); });
   }
   function bar(sec) {
