@@ -173,6 +173,29 @@ html[data-ui=en] .hn-g .hn-l,html[data-ui=es] .hn-g .hn-l{direction:ltr}
  .hn-g :is(a[href],button:not(:disabled)):hover .hn-c{color:inherit}}
 .hn-g :is(a,button):focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
 
+/* ---- the drills panel (app/aids.js, 2026-10-31) ---- */
+.aids .ad-tabs{margin:0 0 .6rem}
+.aids .ad-tip{margin:.5rem .1rem;font-size:.92em;color:var(--muted,#5a5548)}
+.aids .ad-card{margin:.6rem 0;padding:.8rem .9rem;border:1px solid var(--line,#e3d9bf);border-radius:12px;background:var(--paper,#fff)}
+.aids .ad-ref{margin:.15rem 0;font-size:.9em;color:var(--muted,#5a5548)}
+.aids .quran{font-family:var(--qfont),"Uthman Naskh","Amiri Quran",serif;direction:rtl;text-align:right;font-size:calc(26px * min(var(--qscale,1),1.6));line-height:2;margin:.3rem 0}
+.aids .ad-a{padding-top:.4rem;border-top:1px dashed var(--line,#e3d9bf)}
+.aids .ad-opts{display:flex;flex-direction:column;gap:.45rem;margin:.4rem 0}
+.aids .ad-opts .vbtn{text-align:right;font-size:calc(22px * min(var(--qscale,1),1.6));line-height:1.9;padding:.3em .7em}
+.aids .vbtn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.aids .vbtn.bad{background:var(--danger);border-color:var(--danger);color:#fff}
+.aids .ad-res{margin:.5rem 0 .2rem;font-weight:700}
+.aids .ad-res.ok{color:var(--ok)}
+.aids .ad-res.bad{color:var(--danger)}
+.aids .ad-acts{margin:.4rem 0 0}
+.aids .ad-acts .vbtn{text-decoration:none;text-align:center}
+.aids .ad-span{display:flex;gap:.8rem;margin:.5rem 0 0}
+.aids .ad-span[hidden]{display:none}
+.aids .ad-span label{display:flex;align-items:center;gap:.4rem;font-weight:600}
+.aids .ad-span input{width:4.5em;font:inherit;font-size:1.1em;padding:.3em .4em;border:1px solid var(--ctl-line);border-radius:10px;background:var(--ctl);color:var(--ctl-ink);text-align:center}
+.aids .vrow{border-top:0;padding:.4rem .1rem}
+.home .btn.ad-open .hn-ri{margin-inline-end:.3em}
+
 /* ---- prayer (app/athan.js, 2026-10-29): the toolbar link to salat.html and the athan banner ---- */
 .tools .sl{gap:.3em}
 .tools .sl .sl-i{font-size:1.1em;line-height:1}

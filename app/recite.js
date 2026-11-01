@@ -14,8 +14,11 @@
    - Record yourself: the microphone is recorded on this device only (MediaRecorder; kept in the
      browser, IndexedDB "hifz-rec", one recording per segment); play it back, the reciter's
      segment, or both one after the other.
+   - Write it out (2026-10-31, at the learner's request): a box under the test bar where the segment is typed
+     from memory; Check compares it word by word with the text the way a recitation is compared (letters
+     only) and marks every word right or missed, the missed ones' ayat as slips.
    window.HifzRecite = {canListen(), canRecord(), toggle(sec, button), stop(sec), record(sec, button),
-   align(expected, heard)} (align is pure, for the tests).
+   write(sec, button), check(sec[, text]), align(expected, heard)} (align is pure, for the tests).
    Interface text in three languages, following the switch of tools/ui.py (window.hifzUI). */
 (function () {
   'use strict';
@@ -26,15 +29,21 @@
     ar: { listening: 'أستمع… ابدأ التلاوة', stopL: 'أوقف الاستماع', heard: 'سُمع: {0}', noMic: 'اسمح للمتصفح باستعمال الميكروفون.',
       noNet: 'التحقق الفوري يحتاج اتصالاً بالإنترنت.', noRec: 'لا يدعم هذا المتصفح التعرّف على الكلام.', done: 'انتهى المقطع: {0} صحيحة، {1} فاتتك.',
       score: '{0} صحيحة · {1} فاتتك', rec: 'جارٍ التسجيل… {0}', stopR: 'أوقف التسجيل', mine: 'تلاوتي', his: 'القارئ', both: 'القارئ ثم أنا',
-      del: 'احذف التسجيل', saved: 'تسجيلك ({0}) محفوظ على هذا الجهاز فقط.', privacy: 'التعرّف على الكلام من خدمة المتصفح (Google في Chrome)، ويحتاج اتصالاً.' },
+      del: 'احذف التسجيل', saved: 'تسجيلك ({0}) محفوظ على هذا الجهاز فقط.', privacy: 'التعرّف على الكلام من خدمة المتصفح (Google في Chrome)، ويحتاج اتصالاً.',
+      wTitle: 'اكتب المقطع من حفظك', wHint: 'اكتب الكلمات بالترتيب، بالتشكيل أو بدونه؛ تُقارن الحروف فقط.', wCheck: 'صحّح', wClear: 'امسح',
+      wDone: '{0} صحيحة · {1} فاتتك · {2} زائدة', wNone: 'لم تكتب شيئاً بعد.' },
     en: { listening: 'Listening… start reciting', stopL: 'Stop listening', heard: 'Heard: {0}', noMic: 'Allow the browser to use the microphone.',
       noNet: 'Live checking needs an internet connection.', noRec: "This browser doesn't offer speech recognition.", done: 'End of the segment: {0} right, {1} missed.',
       score: '{0} right · {1} missed', rec: 'Recording… {0}', stopR: 'Stop recording', mine: 'Mine', his: 'Reciter', both: 'Reciter, then me',
-      del: 'Delete the recording', saved: 'Your recording ({0}) is kept on this device only.', privacy: "Speech recognition is the browser's service (Google in Chrome) and needs a connection." },
+      del: 'Delete the recording', saved: 'Your recording ({0}) is kept on this device only.', privacy: "Speech recognition is the browser's service (Google in Chrome) and needs a connection.",
+      wTitle: 'Write the segment from memory', wHint: 'Type the words in order, with or without diacritics; only the letters are compared.', wCheck: 'Check', wClear: 'Clear',
+      wDone: '{0} right · {1} missed · {2} extra', wNone: 'Nothing written yet.' },
     es: { listening: 'Escuchando… empiece a recitar', stopL: 'Dejar de escuchar', heard: 'Oído: {0}', noMic: 'Permita al navegador usar el micrófono.',
       noNet: 'La comprobación en directo necesita conexión a internet.', noRec: 'Este navegador no ofrece reconocimiento de voz.', done: 'Fin del segmento: {0} bien, {1} omitidas.',
       score: '{0} bien · {1} omitidas', rec: 'Grabando… {0}', stopR: 'Detener la grabación', mine: 'La mía', his: 'Recitador', both: 'Recitador y luego yo',
-      del: 'Borrar la grabación', saved: 'Su grabación ({0}) se guarda solo en este dispositivo.', privacy: 'El reconocimiento de voz es un servicio del navegador (Google en Chrome) y necesita conexión.' }
+      del: 'Borrar la grabación', saved: 'Su grabación ({0}) se guarda solo en este dispositivo.', privacy: 'El reconocimiento de voz es un servicio del navegador (Google en Chrome) y necesita conexión.',
+      wTitle: 'Escriba el segmento de memoria', wHint: 'Escriba las palabras en orden, con o sin vocales; solo se comparan las letras.', wCheck: 'Corregir', wClear: 'Borrar',
+      wDone: '{0} bien · {1} omitidas · {2} de más', wNone: 'Aún no ha escrito nada.' }
   };
   function lang() { var u = de.getAttribute('data-ui'); return u === 'en' || u === 'es' ? u : 'ar'; }
   function T(k) { return TX[lang()][k]; }
@@ -159,6 +168,56 @@
   }
   function toggle(sec, btn) { if (live && live.sec === sec) { stop(sec); status(sec, ''); } else start(sec, btn); }
 
+  // ---- writing it out (2026-10-31, at the learner's request: the traditional lawḥ): the segment typed from memory,
+  // compared word by word with the text as a recitation is (align), the words marked right or missed ----
+  function writeBox(sec) {
+    var box = sec.querySelector('.tb-write');
+    if (box) return box;
+    box = document.createElement('div'); box.className = 'tb-write'; box.hidden = true;
+    box.innerHTML = '<p class="tw-t"></p><textarea class="tw-in" rows="5" dir="rtl" lang="ar" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>' +
+      '<p class="tw-h"></p><div class="vseg"><button type="button" class="vbtn on tw-check"></button><button type="button" class="vbtn tw-clear"></button></div><p class="tw-r" hidden></p>';
+    var bar = sec.querySelector('.tbar');
+    bar.appendChild(box);
+    box.querySelector('.tw-check').addEventListener('click', function () { check(sec); });
+    box.querySelector('.tw-clear').addEventListener('click', function () {
+      box.querySelector('.tw-in').value = ''; box.querySelector('.tw-r').hidden = true;
+      [].slice.call(sec.querySelectorAll('.quran .wd')).forEach(function (w) { w.classList.remove('shown', 'ok', 'miss'); });
+      box.querySelector('.tw-in').focus();
+    });
+    return box;
+  }
+  function paintWrite(sec) {
+    var box = sec.querySelector('.tb-write'); if (!box) return;
+    box.setAttribute('dir', lang() === 'ar' ? 'rtl' : 'ltr');
+    box.querySelector('.tw-t').textContent = T('wTitle'); box.querySelector('.tw-h').textContent = T('wHint');
+    box.querySelector('.tw-check').textContent = T('wCheck'); box.querySelector('.tw-clear').textContent = T('wClear');
+  }
+  function write(sec, btn) {
+    var box = writeBox(sec); paintWrite(sec);
+    box.hidden = !box.hidden;
+    if (btn) btn.setAttribute('aria-pressed', box.hidden ? 'false' : 'true');
+    if (!box.hidden) box.querySelector('.tw-in').focus();
+  }
+  function check(sec, text) {
+    var box = writeBox(sec), inp = box.querySelector('.tw-in'), out = box.querySelector('.tw-r');
+    var typed = String(text !== undefined ? text : inp.value).split(/\s+/).map(norm).filter(function (x) { return x; });
+    if (!typed.length) { out.hidden = false; out.textContent = T('wNone'); return null; }
+    var ws = [].slice.call(sec.querySelectorAll('.quran .wd[data-i]'));
+    var exp = ws.map(function (w) { return norm(w.textContent); });
+    var r = align(exp, typed, 0), okN = 0, missN = 0;
+    var done = {};
+    r.ok.forEach(function (k) { done[k] = 1; });
+    ws.forEach(function (w, k) {
+      w.classList.add('shown'); w.classList.remove('ok', 'miss', 'help');
+      if (done[k]) { w.classList.add('ok'); okN++; }
+      else { w.classList.add('miss'); missN++; var a = +w.getAttribute('data-a'); if (a && window.HifzTest) window.HifzTest.slip(a); }
+    });
+    var extra = Math.max(0, typed.length - r.ok.length);
+    out.hidden = false; out.textContent = fmt(T('wDone'), nm(okN), nm(missN), nm(extra));
+    out.classList.toggle('bad', missN > 0);
+    return { ok: okN, miss: missN, extra: extra };
+  }
+
   // ---- record and compare ----
   var DBN = 'hifz-rec', dbp = null;
   function db() {
@@ -238,6 +297,7 @@
     var t = e.target.closest && e.target.closest('section.seg .player .tst');
     if (t) setTimeout(function () { var sec = t.closest('section'); if (sec.classList.contains('testing')) panel(sec); }, 0);
   });
-  window.HifzRecite = { canListen: canListen, canRecord: canRecord, toggle: toggle, stop: function (sec) { stop(sec); if (recs && (!sec || recs.sec === sec)) recs.mr.stop(); },
+  window.HifzRecite = { canListen: canListen, canRecord: canRecord, toggle: toggle, write: write, check: check, paintWrite: paintWrite, norm: norm,
+    stop: function (sec) { stop(sec); if (recs && (!sec || recs.sec === sec)) recs.mr.stop(); },
     record: record, align: align, norm: norm, like: like };
 })();

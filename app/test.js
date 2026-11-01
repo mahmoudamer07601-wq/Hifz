@@ -11,6 +11,8 @@
      the slips (app/player.js).  The recitation check (app/recite.js) marks the words it missed.
    - Look-alikes: in test mode, an ayah that has look-alikes in this surah or elsewhere (data "eg"
      and "m" of tools/app_data.py, from tools/repeats.py) carries ⚠; a tap lists them, with links.
+   - Fade (2026-10-31, at the learner's request): a share of the words blanked at random, 25, 50, 75 then
+     100 %, the same words staying blank as the share grows ("Other words" draws them again).
    - Worksheet: prints the segment with the first letters as clues, on its own page.
    window.HifzTest = {active(), slips(), clearSlips(), slip(a), reveal(el)}.
    Interface text in three languages, following the switch of tools/ui.py (window.hifzUI). */
@@ -20,16 +22,19 @@
   if (!W) return;
   var D = W.D, S = D.s, de = document.documentElement;
   var TX = {
-    ar: { hidden: 'مخفي', letters: 'الحرف الأول', firsts: 'أول كل آية', all: 'أظهر الكل', nextw: 'الكلمة التالية', exit: 'إنهاء الاختبار',
-      recite: 'سمّع بصوتك', record: 'سجّل تلاوتك', sheet: 'ورقة عمل', tip: 'المس فراغاً لتظهر كلمته، أو رقم الآية لتظهر الآية كلها.',
+    ar: { hidden: 'مخفي', letters: 'الحرف الأول', firsts: 'أول كل آية', fade: 'إخفاء تدريجي', f25: '٪٢٥', f50: '٪٥٠', f75: '٪٧٥', f100: '٪١٠٠', shuffle: 'كلمات أخرى',
+      all: 'أظهر الكل', nextw: 'الكلمة التالية', exit: 'إنهاء الاختبار',
+      recite: 'سمّع بصوتك', record: 'سجّل تلاوتك', write: 'اكتبه من حفظك', sheet: 'ورقة عمل', tip: 'المس فراغاً لتظهر كلمته، أو رقم الآية لتظهر الآية كلها.',
       simT: 'ما يشبه الآية {0}', inSurah: 'تتكرر في هذه السورة {0} مرة: الآيات {1}', e: 'مطابقة', n: 'متشابهة', c: 'عبارة مشتركة',
       where: 'سورة {0} {1}', here: 'هذه السورة', close: 'إغلاق', simB: 'لها شبيه: المس لترى', ws: 'ورقة عمل — {0} — المقطع {1}', slip: 'تعثّرت هنا' },
-    en: { hidden: 'Hidden', letters: 'First letters', firsts: 'First words', all: 'Show all', nextw: 'Next word', exit: 'End the test',
-      recite: 'Recite aloud', record: 'Record yourself', sheet: 'Worksheet', tip: 'Tap a blank to show its word, or an ayah number to show the whole ayah.',
+    en: { hidden: 'Hidden', letters: 'First letters', firsts: 'First words', fade: 'Fade', f25: '25%', f50: '50%', f75: '75%', f100: '100%', shuffle: 'Other words',
+      all: 'Show all', nextw: 'Next word', exit: 'End the test',
+      recite: 'Recite aloud', record: 'Record yourself', write: 'Write it out', sheet: 'Worksheet', tip: 'Tap a blank to show its word, or an ayah number to show the whole ayah.',
       simT: 'Look-alikes of ayah {0}', inSurah: 'Repeated {0} times in this surah: ayat {1}', e: 'identical', n: 'similar', c: 'shared phrase',
       where: 'Surah {0} {1}', here: 'this surah', close: 'Close', simB: 'Has look-alikes: tap to see', ws: 'Worksheet — {0} — segment {1}', slip: 'Slipped here' },
-    es: { hidden: 'Oculto', letters: 'Primeras letras', firsts: 'Primeras palabras', all: 'Mostrar todo', nextw: 'Palabra siguiente', exit: 'Terminar la prueba',
-      recite: 'Recitar en voz alta', record: 'Grabarse', sheet: 'Hoja de trabajo', tip: 'Toque un hueco para ver su palabra, o un número de aleya para ver la aleya entera.',
+    es: { hidden: 'Oculto', letters: 'Primeras letras', firsts: 'Primeras palabras', fade: 'Desvanecer', f25: '25 %', f50: '50 %', f75: '75 %', f100: '100 %', shuffle: 'Otras palabras',
+      all: 'Mostrar todo', nextw: 'Palabra siguiente', exit: 'Terminar la prueba',
+      recite: 'Recitar en voz alta', record: 'Grabarse', write: 'Escribirlo de memoria', sheet: 'Hoja de trabajo', tip: 'Toque un hueco para ver su palabra, o un número de aleya para ver la aleya entera.',
       simT: 'Aleyas parecidas a la {0}', inSurah: 'Se repite {0} veces en esta sura: aleyas {1}', e: 'idéntica', n: 'parecida', c: 'expresión compartida',
       where: 'Sura {0} {1}', here: 'esta sura', close: 'Cerrar', simB: 'Tiene aleyas parecidas: toque para verlas', ws: 'Hoja de trabajo — {0} — segmento {1}', slip: 'Tropecé aquí' }
   };
@@ -79,20 +84,40 @@
   var on = {};
   function words(sec) { return [].slice.call(sec.querySelectorAll('.quran .wd')); }
   function setMode(sec, mode) {
-    sec.classList.remove('h-hidden', 'h-letters', 'h-firsts');
+    sec.classList.remove('h-hidden', 'h-letters', 'h-firsts', 'h-fade');
     sec.classList.add('h-' + mode);
     sec.setAttribute('data-hint', mode);
     [].forEach.call(sec.querySelectorAll('.tb-mode'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-m') === mode ? 'true' : 'false'); });
+    var fr = sec.querySelector('.tb-fade'); if (fr) fr.hidden = mode !== 'fade';
+    if (mode === 'fade') fade(sec, sec._fade || 25);
+  }
+  // ---- fading text (2026-10-31, at the learner's request): a share of the words blanked at random, 25, 50, 75 then 100 % ----
+  function fade(sec, pct, reshuffle) {
+    sec._fade = pct;
+    var ws = words(sec).filter(function (w) { return !w.classList.contains('wm'); });
+    if (reshuffle || sec._fadeOrder === undefined || sec._fadeOrder.length !== ws.length) {
+      var order = ws.map(function (_, i) { return i; });
+      for (var i = order.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = order[i]; order[i] = order[j]; order[j] = t; }
+      sec._fadeOrder = order;                      // the same words stay blank as the share grows
+    }
+    var k = Math.round(ws.length * pct / 100), hide = {};
+    sec._fadeOrder.slice(0, k).forEach(function (i) { hide[i] = true; });
+    ws.forEach(function (w, i) { w.classList.toggle('fd', !!hide[i]); });
+    [].forEach.call(sec.querySelectorAll('.tb-fade [data-f]'), function (b) { b.setAttribute('aria-pressed', +b.getAttribute('data-f') === pct ? 'true' : 'false'); });
   }
   function bar(sec) {
     var b = document.createElement('div');
     b.className = 'tbar ui';
     b.innerHTML = '<div class="tb-row"><span class="vseg tb-modes">' +
       '<button type="button" class="tb-mode" data-m="hidden"></button><button type="button" class="tb-mode" data-m="letters"></button>' +
-      '<button type="button" class="tb-mode" data-m="firsts"></button></span>' +
+      '<button type="button" class="tb-mode" data-m="firsts"></button><button type="button" class="tb-mode" data-m="fade"></button></span>' +
+      '<span class="vseg tb-fade" hidden><button type="button" class="tb-f" data-f="25"></button><button type="button" class="tb-f" data-f="50"></button>' +
+      '<button type="button" class="tb-f" data-f="75"></button><button type="button" class="tb-f" data-f="100"></button>' +
+      '<button type="button" class="tb-f tb-shuffle" data-t="shuffle"></button></span>' +
       '<button type="button" class="tb-b" data-t="nextw"></button><button type="button" class="tb-b" data-t="all"></button></div>' +
       '<div class="tb-row"><button type="button" class="tb-b tb-recite" data-t="recite"></button>' +
-      '<button type="button" class="tb-b tb-record" data-t="record"></button><button type="button" class="tb-b" data-t="sheet"></button>' +
+      '<button type="button" class="tb-b tb-record" data-t="record"></button><button type="button" class="tb-b tb-writeb" data-t="write" aria-pressed="false"></button>' +
+      '<button type="button" class="tb-b" data-t="sheet"></button>' +
       '<button type="button" class="tb-b tb-exit" data-t="exit"></button></div>' +
       '<p class="tb-tip"></p><div class="tb-live" hidden></div><div class="tb-rec" hidden></div>';
     return b;
@@ -101,8 +126,10 @@
     var b = sec.querySelector('.tbar'); if (!b) return;
     b.setAttribute('dir', lang() === 'ar' ? 'rtl' : 'ltr');
     [].forEach.call(b.querySelectorAll('.tb-mode'), function (x) { x.textContent = T(x.getAttribute('data-m')); });
+    [].forEach.call(b.querySelectorAll('.tb-f[data-f]'), function (x) { x.textContent = T('f' + x.getAttribute('data-f')); });
     [].forEach.call(b.querySelectorAll('[data-t]'), function (x) { if (!x.classList.contains('busy')) x.textContent = T(x.getAttribute('data-t')); });
     b.querySelector('.tb-tip').textContent = T('tip');
+    if (window.HifzRecite && window.HifzRecite.paintWrite) window.HifzRecite.paintWrite(sec);
     if (!window.HifzRecite || !window.HifzRecite.canListen()) b.querySelector('.tb-recite').hidden = true;
     if (!window.HifzRecite || !window.HifzRecite.canRecord()) b.querySelector('.tb-record').hidden = true;
   }
@@ -134,8 +161,8 @@
     if (!on[sec.id]) return;
     delete on[sec.id];
     if (window.HifzRecite) window.HifzRecite.stop(sec);
-    sec.classList.remove('testing', 'h-hidden', 'h-letters', 'h-firsts');
-    words(sec).forEach(function (w) { w.classList.remove('shown', 'help', 'ok', 'miss'); });
+    sec.classList.remove('testing', 'h-hidden', 'h-letters', 'h-firsts', 'h-fade');
+    words(sec).forEach(function (w) { w.classList.remove('shown', 'help', 'ok', 'miss', 'fd'); });
     var b = sec.querySelector('.tbar'); if (b) b.parentNode.removeChild(b);
     badges(sec, false);
     var t = sec.querySelector('.player .tst'); if (t) t.setAttribute('aria-pressed', 'false');
@@ -152,6 +179,7 @@
     for (var i = 0; i < ws.length; i++) {
       if (ws[i].classList.contains('shown') || ws[i].classList.contains('wm')) continue;
       if (sec.classList.contains('h-firsts') && ws[i].getAttribute('data-i') === '1') continue;
+      if (sec.classList.contains('h-fade') && !ws[i].classList.contains('fd')) continue;
       reveal(ws[i], true);
       try { ws[i].scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
       return;
@@ -227,18 +255,21 @@
     var b = t.closest('.tbar button');
     if (b) {
       if (b.classList.contains('tb-mode')) setMode(sec, b.getAttribute('data-m'));
+      else if (b.hasAttribute('data-f')) fade(sec, +b.getAttribute('data-f'));
+      else if (b.getAttribute('data-t') === 'shuffle') fade(sec, sec._fade || 25, true);
       else if (b.getAttribute('data-t') === 'nextw') nextWord(sec);
       else if (b.getAttribute('data-t') === 'all') words(sec).forEach(function (w) { w.classList.add('shown'); });
       else if (b.getAttribute('data-t') === 'exit') leave(sec);
       else if (b.getAttribute('data-t') === 'sheet') worksheet(sec);
       else if (b.getAttribute('data-t') === 'recite' && window.HifzRecite) window.HifzRecite.toggle(sec, b);
       else if (b.getAttribute('data-t') === 'record' && window.HifzRecite) window.HifzRecite.record(sec, b);
+      else if (b.getAttribute('data-t') === 'write' && window.HifzRecite) window.HifzRecite.write(sec, b);
       return;
     }
     var sb = t.closest('.simb');
     if (sb) { e.preventDefault(); e.stopPropagation(); showSims(+sb.getAttribute('data-a'), sb); return; }
     var w = t.closest('.quran .wd');
-    if (w) { reveal(w, true); return; }
+    if (w) { if (sec.classList.contains('h-fade') && !w.classList.contains('fd')) return; reveal(w, true); return; }
   });
   // an ayah number in test mode shows its ayah (and does not open the reference panel)
   document.addEventListener('click', function (e) {
@@ -258,5 +289,5 @@
     [].forEach.call(document.querySelectorAll('.quran .aya.slip'), function (m) { m.setAttribute('data-slip', T('slip')); });
   });
   window.HifzTest = { active: active, slips: slips, clearSlips: clearSlips, slip: slip, reveal: reveal, enter: enter, leave: leave,
-    clue: clue, setMode: setMode, paint: paintBar };
+    clue: clue, setMode: setMode, fade: fade, paint: paintBar };
 })();

@@ -7,14 +7,44 @@
    and the juzʾ (the groups are styled in app/view.css, shared with the Mushaf), after the read-through switch 📖; a row
    of their own on a phone */
 .tools .hnav{order:1;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4em .6em}
-@media (max-width:700px){.tools .hnav{flex-basis:100%;gap:.35em .3em}}
-html .tools button.hn-rd{display:inline-flex;align-items:center;gap:.3em;min-height:2.75em;padding:0 .75em;border:1px solid var(--ctl-line);
+@media (max-width:700px){.tools .hnav{flex-basis:100%;gap:.35em .22em}}
+html .tools button.hn-rd,html .tools button.hn-dr{display:inline-flex;align-items:center;gap:.3em;min-height:2.75em;padding:0 .75em;border:1px solid var(--ctl-line);
  border-radius:999px;background:var(--ctl);color:var(--ctl-ink);font-weight:600;line-height:1.1;white-space:nowrap}
 .hn-ri{font-size:1.25em;line-height:1}
 html[data-read] .tools button.hn-rd{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
-@media (max-width:700px){html .tools button.hn-rd{padding:0 .4em}.hn-rt{display:none}}
+@media (max-width:700px){html .tools button.hn-rd,html .tools button.hn-dr{padding:0 .22em;min-height:2.6em}.hn-rt{display:none}
+ .tools .hnav .hn-g{min-height:2.6em}.tools .hnav .hn-g .hn-b{min-width:1.45em;padding:0 .05em}.tools .hnav .hn-g .hn-l{min-width:2.9em;padding:.1em .15em}}
 .quran .wd.hn-hit{animation:hn-flash 2.6s ease-out}
 @keyframes hn-flash{0%,45%{background:var(--hl-ayah)}100%{background:transparent}}
+/* the Mushaf's lines (app/words.js, 2026-10-31): html[data-lines] shows each line as it sits on the page: one block per line,
+   justified to the width like the printed line, a partial first or last line (shared with the neighbouring segment) kept to
+   its own share of the width (--before, --share), the line number at its start; the paragraph's text shrinks (--lnfit) so
+   that the longest line fits.  Rhyme view: html[data-rhyme] marks the last word of every ayah. */
+.ln{display:contents}
+html[data-lines] .quran{font-size:calc(30px * var(--qscale,1) * var(--lnfit,1));text-align:justify;text-align-last:justify}
+html[data-lines] .ln{display:block;position:relative;width:calc(var(--share,1) * 100%);margin-inline-start:calc(var(--before,0) * 100%);
+ text-align:justify;text-align-last:justify}
+html[data-lines] .ln+.ln{margin-top:0}
+html[data-lines] .page{max-width:28cm;padding-inline:1.2cm 2.6cm}
+html[data-lines] .ln::before{content:attr(data-l);position:absolute;inset-inline-end:100%;top:0;width:2.2em;padding-inline-end:.35em;box-sizing:border-box;
+ text-align:center;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.36em;line-height:2.4;color:var(--muted,#5a5548);opacity:.75;pointer-events:none}
+html[data-lines] .ln[style*="--before"]::before{content:none}
+html[data-lines] .ln .pgm{display:block;margin:.2em 0 0;font-size:calc(12px * var(--ui,1));text-align:center;text-align-last:center}
+html[data-lines] .ln.wrapped{text-align-last:auto}
+html[data-lines] section.seg .quran{word-spacing:0}
+html[data-rhyme] .quran .wd.rw{background:var(--hl-ayah);box-shadow:0 .14em 0 0 var(--accent);border-radius:.15em}
+html[data-rhyme][data-theme=light] .quran .wd.rw{background:#f3e9c6}
+@media (max-width:700px){html[data-lines] .page{padding-inline:.6rem 1.7rem}html[data-lines] .ln::before{width:1.6em;font-size:.34em}
+ html[data-lines] .quran{font-size:calc(25px * var(--qscale,1) * var(--lnfit,1))}}
+/* the page thumbnails in the segment header (app/words.js, 2026-10-31): the lines of each page the segment touches, its own lit */
+.thumbs{display:none;gap:.5em;vertical-align:middle;margin-inline-start:.6em}
+html[data-lines] .thumbs{display:inline-flex}
+.thumb{display:inline-flex;flex-direction:column;justify-content:space-between;width:1.55em;height:2.1em;padding:.14em .18em;box-sizing:border-box;
+ border:1px solid var(--rule,#c9b27a);border-radius:2px;background:var(--paper,#fff);vertical-align:middle}
+.thumb[data-side=R]{border-inline-start-width:3px}
+.thumb[data-side=L]{border-inline-end-width:3px}
+.thumb i{display:block;height:1px;background:var(--line,#d8d2c2)}
+.thumb i.on{height:2px;background:var(--accent,#8a6a1f)}
 /* the tajweed colour key after each segment, off in the display panel (app/view.js, 2026-10-31) */
 html[data-nolegend] .seg footer :is(.legend,.note){display:none}
 /* the read-through view (app/nav.js, 2026-10-31): html[data-read], the whole surah as one text under its title; the index,
@@ -107,14 +137,31 @@ html.rp-open .pbar{display:none}
 .tb-b.on{background:var(--danger);border-color:var(--danger);color:#fff}
 .tb-b[hidden]{display:none}
 .tb-tip{margin:.15rem .1rem 0;font-size:.85em;color:var(--muted,#5a5548)}
+.tb-write{margin:.5rem 0 0;padding:.5rem .6rem;border-radius:8px;background:var(--paper,#fff)}
+.tb-write[hidden]{display:none}
+.tb-write .tw-t{margin:0 0 .35rem;font-weight:700}
+.tb-write .tw-in{display:block;width:100%;box-sizing:border-box;font-family:var(--qfont),"Uthman Naskh","Amiri Quran",serif;font-size:calc(22px * min(var(--qscale,1),1.6));line-height:1.9;
+ padding:.4em .6em;border:1px solid var(--ctl-line);border-radius:10px;background:var(--ctl);color:var(--ctl-ink);resize:vertical}
+.tb-write .tw-h{margin:.3rem 0 .4rem;font-size:.85em;color:var(--muted,#5a5548)}
+.tb-write .tw-r{margin:.45rem 0 0;font-weight:700}
+.tb-write .tw-r.bad{color:var(--danger)}
+.tb-write .tw-r[hidden]{display:none}
+.tb-b.tb-writeb[aria-pressed="true"]{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
 .tb-live,.tb-rec{margin:.45rem 0 0;padding:.45rem .6rem;border-radius:8px;background:var(--paper,#fff);font-size:.95em;font-weight:600}
 .tb-live.bad{color:var(--danger)}
 .tb-live[hidden],.tb-rec[hidden]{display:none}
 .tb-rec p{margin:0 0 .35rem;font-weight:400;color:var(--muted,#5a5548)}
 .tb-rec .vseg button{font-size:.92em}
 section.testing .quran .wd{position:relative}
-section.testing .quran .wd:not(.shown):not(.wm){color:transparent!important;box-shadow:inset 0 -.12em 0 0 var(--muted,#8a8476);border-radius:0}
-section.testing .quran .wd:not(.shown):not(.wm) *{color:transparent!important}
+section.testing:not(.h-fade) .quran .wd:not(.shown):not(.wm){color:transparent!important;box-shadow:inset 0 -.12em 0 0 var(--muted,#8a8476);border-radius:0}
+section.testing:not(.h-fade) .quran .wd:not(.shown):not(.wm) *{color:transparent!important}
+/* fade (2026-10-31): only the drawn words are blank */
+section.testing.h-fade .quran .wd.fd:not(.shown){color:transparent!important;box-shadow:inset 0 -.12em 0 0 var(--muted,#8a8476);border-radius:0;cursor:pointer}
+section.testing.h-fade .quran .wd.fd:not(.shown) *{color:transparent!important}
+.tb-fade{flex:1 1 100%}
+.tb-fade[hidden]{display:none}
+.tb-fade .tb-f{flex:1 1 auto;min-height:2.3em;padding:.25em .6em;border:1px solid var(--ctl-line);border-radius:10px;background:var(--ctl);color:var(--ctl-ink);font:inherit;font-weight:600;cursor:pointer}
+.tb-fade .tb-f[aria-pressed="true"]{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
 section.testing.h-letters .quran .wd:not(.shown):not(.wm)::before{content:attr(data-h);position:absolute;right:0;top:0;color:var(--muted,#5a5548);pointer-events:none}
 section.testing.h-firsts .quran .wd[data-i="1"]:not(.shown){color:inherit!important;box-shadow:none}
 section.testing.h-firsts .quran .wd[data-i="1"]:not(.shown) *{color:inherit!important}

@@ -10,6 +10,8 @@
                starts with the last ayah before it (the junction with the previous segment)
      gaps      after every play a silence as long as it takes at normal speed (×1, ×1.5, ×2) to
                recite it back
+     cues      (2026-10-31) each ayah's first words, a pause as long as the ayah to finish it from
+               memory, then the whole ayah
      speed     0.75, 0.85, 1, 1.15, 1.25, 1.5, 1.75 or 2 with the pitch kept; a sleep timer
    While it plays: the word being recited is lit (QUL's word timings, data "w"), the page follows
    it, a tap on a word plays from that word to the end of its segment (on a touch screen with the
@@ -55,6 +57,7 @@
       t_range: 'ماذا أسمع', t_rep: 'كرّر المقطع المختار', t_drill: 'كل آية قبل ذلك', t_gap: 'مهلة لأردّد بعد كل تلاوة',
       t_speed: 'السرعة', t_sleep: 'مؤقت النوم', t_more: 'أثناء التلاوة', off: 'لا', min: '{0} د',
       chain2: 'التراكم: ١، ١–٢، ١–٣ …', link: 'الربط: ابدأ بآخر آية قبله', follow: 'تظليل الكلمة المتلوّة', scroll: 'متابعة الصفحة للتلاوة',
+      cue2: 'التلقين: أول كل آية، ثم مهلة لأتمّها، ثم الآية كاملة', cue: 'تلقين: الآية {0}', cueGap: 'دورك: أتمّ الآية {0} · {1} ث',
       tap: 'لمس كلمة يبدأ التلاوة منها', from: 'من الآية', to: 'إلى الآية', start: 'ابدأ', close: 'إغلاق',
       weak: 'آيات تعثّرت فيها: {0}', drillWeak: 'درّبني عليها', clearWeak: 'امسحها', sure: 'اضغط مرة أخرى للمسح', noWeak: 'لا آيات معلَّمة بعد. في وضع الاختبار تُعلَّم الآية التي احتجت فيها إلى تلميح.',
       x1: '×١', x15: '×١٫٥', x2: '×٢', err: 'تعذّر التشغيل: لا اتصال، وهذه السورة غير محفوظة على هذا الجهاز. احفظها من الصفحة الرئيسية.',
@@ -71,6 +74,7 @@
       t_range: 'What to play', t_rep: 'Repeat the chosen range', t_drill: 'Each ayah first', t_gap: 'Pause to recite after each play',
       t_speed: 'Speed', t_sleep: 'Sleep timer', t_more: 'While it plays', off: 'Off', min: '{0} min',
       chain2: 'Chaining: 1, 1–2, 1–3 …', link: 'Link: start with the ayah before', follow: 'Highlight the word being recited',
+      cue2: 'Cues: the opening of each ayah, a pause to finish it, then the whole ayah', cue: 'Cue: ayah {0}', cueGap: 'Your turn: finish ayah {0} · {1} s',
       scroll: 'Keep the recited text in view', tap: 'Tap a word to play from it', from: 'From ayah', to: 'To ayah', start: 'Start', close: 'Close',
       weak: 'Ayat I slipped on: {0}', drillWeak: 'Drill them', clearWeak: 'Clear them', sure: 'Tap again to clear', noWeak: 'No ayat marked yet. In test mode, an ayah is marked when you needed a hint in it.',
       x1: '×1', x15: '×1.5', x2: '×2', err: "Can't play: offline, and this surah isn't saved on this device. Save it from the home page.",
@@ -87,6 +91,7 @@
       t_range: 'Qué reproducir', t_rep: 'Repetir el tramo elegido', t_drill: 'Antes, cada aleya', t_gap: 'Pausa para recitar tras cada vez',
       t_speed: 'Velocidad', t_sleep: 'Temporizador', t_more: 'Durante la recitación', off: 'No', min: '{0} min',
       chain2: 'Encadenar: 1, 1–2, 1–3 …', link: 'Enlace: empezar por la aleya anterior', follow: 'Resaltar la palabra recitada',
+      cue2: 'Pistas: el comienzo de cada aleya, una pausa para terminarla y luego la aleya entera', cue: 'Pista: aleya {0}', cueGap: 'Su turno: termine la aleya {0} · {1} s',
       scroll: 'Mantener a la vista el texto recitado', tap: 'Tocar una palabra reproduce desde ella', from: 'Desde la aleya', to: 'Hasta la aleya',
       start: 'Empezar', close: 'Cerrar',
       weak: 'Aleyas en que tropecé: {0}', drillWeak: 'Practicarlas', clearWeak: 'Borrarlas', sure: 'Toque de nuevo para borrar', noWeak: 'Aún no hay aleyas marcadas. En el modo de prueba se marca la aleya en que necesitó una pista.',
@@ -100,7 +105,7 @@
 
   // ---------------------------------------------------------------- settings (this device)
   var PK = 'hifz-practice';
-  var P = { rep: 1, drill: 0, chain: false, gap: 0, link: false, rate: 1, sleep: 0, follow: true, scroll: true, tap: true };
+  var P = { rep: 1, drill: 0, chain: false, gap: 0, link: false, rate: 1, sleep: 0, follow: true, scroll: true, tap: true, cue: false };
   try { var sv = JSON.parse(localStorage.getItem(PK) || '{}'); for (var k in P) if (sv && sv[k] !== undefined) P[k] = sv[k]; } catch (e) {}
   function saveP() { try { localStorage.setItem(PK, JSON.stringify(P)); } catch (e) {} }
   var REPS = [1, 2, 3, 5, 7, 10, 20, 0], DRILLS = [0, 2, 3, 5, 7, 10], GAPS = [0, 1, 1.5, 2], RATES = [0.75, 0.85, 1, 1.15, 1.25, 1.5, 1.75, 2], SLEEPS = [0, 10, 20, 30, 60];
@@ -174,6 +179,13 @@
 
   // ---------------------------------------------------------------- the plan
   function dur(x0, x1) { return AT[x1 - 1][1] - AT[x0 - 1][0]; }
+  function cueEnd(a) {        // the end of the ayah's third word (the second when it has three or fewer, the first when it has one)
+    var w = WT[a - 1] || [], n = w.length, k = n >= 4 ? 3 : n >= 3 ? 2 : 1;
+    if (!n) return AT[a - 1][0];
+    var e = 0;
+    for (var j = 0; j < w.length; j++) if (w[j][0] <= k) e = Math.max(e, w[j][2]);
+    return Math.min(e + 0.1, AT[a - 1][1]);
+  }
   function buildPlan(r) {
     var steps = [], loop = -1;
     function play(x0, x1, kind, n, of, t0) {
@@ -189,6 +201,19 @@
       return { steps: steps, loop: loop };
     }
     var a0 = r.a0, a1 = r.a1, lead = P.link && a0 > 1 ? a0 - 1 : a0, times2 = Math.max(1, P.drill || 1);
+    if (P.cue) {            // cues (2026-10-31): the first words of each ayah, a pause as long as the ayah to finish it, then the whole ayah
+      for (var c = a0; c <= a1; c++) {
+        var ce = cueEnd(c);
+        if (ce > AT[c - 1][0] + 0.3) {
+          steps.push({ t0: AT[c - 1][0], t1: ce, a0: c, a1: c, kind: 'cue', n: 1, of: 1 });
+          steps.push({ gap: Math.min(120, Math.max(2, dur(c, c))), a0: c, a1: c, cue: true });
+        }
+        steps.push({ t0: AT[c - 1][0], t1: AT[c - 1][1], a0: c, a1: c, kind: 'range', n: 1, of: 1 });
+      }
+      if (P.rep === 0) loop = 0;
+      else for (var m0 = 2; m0 <= P.rep; m0++) steps = steps.concat(steps.slice(0, steps.length / (m0 - 1)));
+      return { steps: steps, loop: loop };
+    }
     if (P.chain) {
       for (var k = a0; k <= a1; k++) for (var i = 1; i <= times2; i++) play(a0, k, 'chain', i, times2);
     } else if (P.drill > 0) {
@@ -537,11 +562,12 @@
     if (!st) return;
     if (st.gap !== undefined) {
       var left = Math.max(0, Math.ceil((run.gapEnd - Date.now()) / 1000));
-      txt = fmt(T('gap'), nm(left));
+      txt = st.cue ? fmt(T('cueGap'), nm(st.a0), nm(left)) : fmt(T('gap'), nm(left));
       fill.style.width = '100%';
     } else {
       var a = curA || st.a0;
-      if (st.kind === 'drill') txt = fmt(T('drill'), nm(st.a0), nm(st.n), nm(st.of));
+      if (st.kind === 'cue') txt = fmt(T('cue'), nm(st.a0));
+      else if (st.kind === 'drill') txt = fmt(T('drill'), nm(st.a0), nm(st.n), nm(st.of));
       else if (st.kind === 'chain') txt = fmt(T('chain'), nm(st.a1), nm(st.n), nm(st.of));
       else txt = fmt(T('ayah'), nm(a)) + (st.of === 0 ? ' · ' + fmt(T('roundInf'), nm(run.round || 1)) : st.of > 1 ? ' · ' + fmt(T('round'), nm(st.n), nm(st.of)) : '');
       var pos = now() - st.t0, len = st.t1 - st.t0;
@@ -615,7 +641,7 @@
     sheet.appendChild(grp('t_speed', segBtns('rate', RATES, function (v) { return '×' + v; })));
     sheet.appendChild(grp('t_sleep', segBtns('sleep', SLEEPS, function (v) { return v === 0 ? 'off' : 'min:' + v; })));
     var more = el('div', 'vg'); var ml = el('span', 'vl'); ml.setAttribute('data-t', 't_more'); more.appendChild(ml);
-    [['chain', 'chain2'], ['link', 'link'], ['follow', 'follow'], ['scroll', 'scroll'], ['tap', 'tap']].forEach(function (x) { more.appendChild(swRow(x[0], x[1])); });
+    [['cue', 'cue2'], ['chain', 'chain2'], ['link', 'link'], ['follow', 'follow'], ['scroll', 'scroll'], ['tap', 'tap']].forEach(function (x) { more.appendChild(swRow(x[0], x[1])); });
     sheet.appendChild(more);
     var wk = el('div', 'vg pweak'); wk.innerHTML = '<span class="vl pweak-t"></span><p class="pweak-n"></p><div class="vseg"><button type="button" class="pdrillweak"></button><button type="button" class="pclearweak"></button></div>';
     sheet.appendChild(wk);
@@ -646,7 +672,7 @@
         if (b.getAttribute('data-p') === 'sleep' && run && !run.idle) run.sleepAt = P.sleep ? Date.now() + P.sleep * 60000 : 0;
       } else if (b.hasAttribute('data-sw')) {
         var key = b.getAttribute('data-sw'); P[key] = !P[key]; saveP(); paintSheet();
-        if (key === 'chain' || key === 'link') replan();
+        if (key === 'chain' || key === 'link' || key === 'cue') replan();
         if (key === 'follow' && !P.follow) { lockedA.forEach(function (x) { x.classList.remove('ca'); }); lockedA = []; if (curW) curW.classList.remove('cw'); curW = null; curA = 0; }
       } else if (b.classList.contains('pgo')) { closeSheet(); start(pick || R || rangeOf('seg', ctxAyah())); }
       else if (b.classList.contains('pclose')) closeSheet();
@@ -693,7 +719,7 @@
     pi.classList.toggle('on', REPS.indexOf(P.rep) < 0);
     [].forEach.call(sheet.querySelectorAll('[data-sw]'), function (b) {
       var k = b.getAttribute('data-sw'); b.setAttribute('aria-pressed', P[k] ? 'true' : 'false');
-      b.setAttribute('aria-label', T({ chain: 'chain2' }[k] || k));
+      b.setAttribute('aria-label', T({ chain: 'chain2', cue: 'cue2' }[k] || k));
     });
     var l = slips();
     sheet.querySelector('.pweak-t').textContent = fmt(T('weak'), nm(l.length));
@@ -781,11 +807,9 @@
     var a = fv.a, box = fv.querySelector('.fv-text');
     if (box.getAttribute('data-a') !== String(a)) {
       box.innerHTML = '';
-      var ws = W.words(a), m = W.marker(a);
-      if (ws.length) {
-        var n = ws[0];
-        while (n) { box.appendChild(n.cloneNode(true)); if (n === m) break; n = n.nextSibling; }
-      }
+      var ws = W.words(a), m = W.marker(a);     // the words and the marker (they may sit in several line wrappers, app/words.js)
+      ws.forEach(function (w) { box.appendChild(w.cloneNode(true)); box.appendChild(document.createTextNode(' ')); });
+      if (m) box.appendChild(m.cloneNode(true));
       [].forEach.call(box.querySelectorAll('.cw,.ca'), function (x) { x.classList.remove('cw'); x.classList.remove('ca'); });
       [].forEach.call(box.querySelectorAll('.pgm'), function (x) { x.parentNode.removeChild(x); });
       box.setAttribute('data-a', a);
