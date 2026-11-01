@@ -6,7 +6,8 @@
    - offline audio: save all, add the learner's own mp3s (NNN.mp3 for a whole surah, or the
      segment files NNN-Sxx-vaaa-bbb.mp3), remove; a file is kept only when its duration matches
      the recording the ledger's cut times were measured on;
-   - the Install button, when the browser offers one.
+   - the Install button, when the browser offers one;
+   - the User guide button (guide.html), highlighted until the guide has been opened once.
    Interface text in three languages, following the switch of tools/ui.py (window.hifzUI). */
 (function () {
   'use strict';
@@ -323,6 +324,11 @@
   });
   document.addEventListener('hifz-installable', inst);
   document.addEventListener('hifz-installed', inst);
+
+  /* ---------------- the user guide (2026-11-01): its button stands out until the guide has been opened once
+     (guide.html sets localStorage "hifz-guide", tools/guide.py) ---------------- */
+  var bGuide = document.querySelector('.hero .btn.guide');
+  try { if (bGuide && !localStorage.getItem('hifz-guide')) bGuide.classList.add('new'); } catch (e) {}
 
   function relabel() { labels(); render(); paint(); }
   if (window.hifzUI) window.hifzUI.on(relabel);
