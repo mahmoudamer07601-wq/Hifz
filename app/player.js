@@ -298,8 +298,10 @@
     paint();
   });
   au.addEventListener('play', function () {
-    // resumed from outside (the system, after an interruption): the run resumes with it and stops at its cut again
-    if (run && !run.idle && run.paused && !loading) { var st = stepNow(); if (st && st.gap === undefined) { run.paused = false; msg(''); awake(true); paint(); } }
+    // resumed from outside (the system, after an interruption): the run resumes with it and stops at its cut again.
+    // Not a 'play' event that arrives after the app paused again (the events come a task later: a pause right after
+    // a play, as when the voice search starts listening during a recitation, 2026-11-05)
+    if (run && !run.idle && run.paused && !loading && !au.paused) { var st = stepNow(); if (st && st.gap === undefined) { run.paused = false; msg(''); awake(true); paint(); } }
   });
   au.addEventListener('ratechange', schedule);
   au.addEventListener('ended', function () { if (live()) next(); });
@@ -362,6 +364,7 @@
     var my = run;
     source(r).then(function (s) { return use(s); }).then(function () {
       if (run !== my) return;
+      if (run.paused) { paint(); return; }          // paused while the recording loaded (2026-11-05): Play starts it
       go(0); awake(true);
     }, function () { if (run === my) fail(); });
     paint();

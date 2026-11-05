@@ -1,7 +1,10 @@
 /* Hifz web app: the home page (tools/make_app.py).
    - search: the kit's search (packages/hifz-search.js, the engine of tools/search_engine.js);
      a result opens the surah file at that ayah with the results (#a=s:a&v=find&q=…, the link
-     format of the reference panel, tools/refs.py);
+     format of the reference panel, tools/refs.py); the results of the voice search (app/voice.js,
+     2026-11-05: HifzHome.voice) open their ayah lit without the panel (#a=s:a&h=…); the page's
+     address keeps the search (#q=…, &v=1 for a voice search, whose results are kept for the tab in
+     sessionStorage), so Back from a surah shows the results again;
    - the surah list: ⤓ saves a surah's recording on this device, ✓ shows it is saved;
    - offline audio: save all, add the learner's own mp3s (NNN.mp3 for a whole surah, or the
      segment files NNN-Sxx-vaaa-bbb.mp3), remove; a file is kept only when its duration matches
@@ -118,10 +121,11 @@
     if (!res) { out.innerHTML = ''; return; }
     if (res.short) { out.innerHTML = '<p class="rs-count">' + esc(T('short')) + '</p>'; return; }
     if (!res.n) { out.innerHTML = '<p class="rs-count">' + esc(fmt(T('noHit'), res.q)) + '</p>'; return; }
-    var h = ['<p class="rs-count">' + esc(T('count')(res.n, res.occ)) + '</p><ol class="rs-list">'], i, x, s, a;
+    var h = [(res.note ? '<p class="rs-note">' + esc(res.note) + '</p>' : '') +
+      '<p class="rs-count">' + esc(T('count')(res.n, res.occ)) + '</p><ol class="rs-list">'], i, x, s, a;
     for (i = 0; i < Math.min(shown, res.n); i++) {
       x = HS.ref(res.ayat[i]); s = x[0]; a = x[1];
-      h.push('<li><a href="' + book(s) + '#a=' + s + ':' + a + '&v=find&q=' + encodeURIComponent(res.q) + '">' +
+      h.push('<li><a href="' + book(s) + '#a=' + s + ':' + a + (res.voice ? '&h=' : '&v=find&q=') + encodeURIComponent(res.q) + '">' +
         '<span class="rs-ref">' + esc(fmt(T('where'), iso(BY[s].name), nm(a))) + '</span>' +
         '<p class="rs-q ar">' + hl(HS.text(res.ayat[i]), res.spans[i] || []) + '</p></a></li>');
     }
@@ -133,12 +137,39 @@
   }
   function run() {
     var q = qi.value.trim();
-    if (!q) { res = null; render(); return; }
+    if (!q) { res = null; render(); remember(); return; }
     engine().then(function (h) {
       if (q !== qi.value.trim()) return;
       if (!h) { out.innerHTML = '<p class="rs-count">' + esc(T('noFile')) + '</p>'; return; }
-      res = h.search(q); res.q = q; shown = PAGE; render();
+      res = h.search(q); res.q = q; shown = PAGE; render(); remember();
     });
+  }
+  /* the voice search (app/voice.js): its query, its ayat (found within an ayah, across two, or for a part of
+     what was heard) and a note when only a part was found */
+  function voice(q, r, note) {
+    clearTimeout(timer); qi.value = q;
+    engine().then(function (h) {
+      if (!h) { out.innerHTML = '<p class="rs-count">' + esc(T('noFile')) + '</p>'; return; }
+      res = { q: q, ayat: r.ayat || [], spans: r.spans || [], n: r.n || 0, occ: r.occ || 0, voice: true, note: note || '' };
+      shown = PAGE; render(); remember();
+    });
+  }
+  var SK = 'hifz-home-voice';
+  function remember() {
+    try {
+      history.replaceState(history.state, '', location.href.split('#')[0] + (res && res.q ? '#q=' + encodeURIComponent(res.q) + (res.voice ? '&v=1' : '') : ''));
+      if (res && res.voice) sessionStorage.setItem(SK, JSON.stringify(res));
+    } catch (e) {}
+  }
+  function restore() {
+    var m = /^#q=([^&]*)(&v=1)?$/.exec(location.hash), q = '', x = null;
+    if (!m) return;
+    try { q = decodeURIComponent(m[1]); } catch (e) { return; }
+    if (!q) return;
+    if (m[2]) { try { x = JSON.parse(sessionStorage.getItem(SK) || 'null'); } catch (e) {} }
+    qi.value = q;
+    if (x && x.q === q) { engine().then(function (h) { if (!h) return; res = x; shown = PAGE; render(); }); return; }
+    run();
   }
   qi.addEventListener('focus', engine);
   qi.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(run, 220); });
@@ -332,6 +363,6 @@
 
   function relabel() { labels(); render(); paint(); }
   if (window.hifzUI) window.hifzUI.on(relabel);
-  labels(); inst(); refresh();
-  window.HifzHome = { refresh: refresh, saved: function () { return saved; } };   // for tests
+  labels(); inst(); refresh(); restore();
+  window.HifzHome = { refresh: refresh, saved: function () { return saved; }, voice: voice };   // voice: app/voice.js; the rest for tests
 })();

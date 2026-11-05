@@ -215,3 +215,24 @@ html[data-ui=en] .hn-g .hn-l,html[data-ui=es] .hn-g .hn-l{direction:ltr}
 .athb .athb-stop,.athb .athb-play{background:var(--ctl-on,#3d3a33);color:var(--ctl-on-ink,#fff);border-color:var(--ctl-on,#3d3a33)}
 .athb .athb-x{min-width:2.6em;padding:0;font-size:1.2em}
 @media print{.athb{display:none!important}}
+/* ---- voice search (app/voice.js, 2026-11-05): 🎤 in the search box of the home page and of the surah files ---- */
+.vc-mic{display:inline-flex;align-items:center;justify-content:center;flex:none;width:2.3rem;height:2.3rem;padding:0;
+ border:1px solid var(--ctl-line,#b9b2a1);border-radius:50%;background:var(--ctl,#fff);color:var(--ctl-ink,#3d3a33);font:inherit;
+ font-size:1.05rem;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.vc-mic:hover{border-color:var(--accent,#8a6a1f)}
+.vc-wrap{position:relative;display:block}
+.vc-wrap .vc-mic{position:absolute;top:50%;inset-inline-end:.4rem;transform:translateY(-50%)}
+.vc-wrap input[type=search]{padding-inline-end:3.2rem}
+.tools .hs-box.vc{gap:.35rem}
+.tools .hs-box.vc .hs-q{flex:1 1 auto;min-width:0}
+.tools .hs-box .vc-mic{width:2.05rem;height:2.05rem;padding:0;border-radius:50%;font-size:.95rem;background:var(--ctl,#fff);border-color:var(--ctl-line,#b9b2a1)}
+html .vc-mic.on,html .tools .hs-box .vc-mic.on{background:var(--danger,#b3261e);border-color:var(--danger,#b3261e);color:#fff;animation:vc-pulse 1.2s ease-in-out infinite}
+@keyframes vc-pulse{0%,100%{box-shadow:0 0 0 0 rgba(179,38,30,.45)}50%{box-shadow:0 0 0 .45rem rgba(179,38,30,0)}}
+@media (prefers-reduced-motion:reduce){html .vc-mic.on,html .tools .hs-box .vc-mic.on{animation:none}}
+.vc-toast{position:fixed;z-index:70;top:calc(var(--tools-h,3rem) + .5rem);left:50%;transform:translateX(-50%);box-sizing:border-box;
+ width:max-content;max-width:min(92vw,36rem);padding:.55rem 1rem;border-radius:12px;background:var(--ink,#1f1d18);color:var(--paper,#fff);
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.55;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.25);
+ overflow-wrap:anywhere}
+.vc-toast.bad{background:var(--danger,#b3261e);color:#fff}
+.vc-toast[hidden]{display:none}
+@media print{.vc-mic,.vc-toast{display:none!important}}
