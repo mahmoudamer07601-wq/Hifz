@@ -237,6 +237,7 @@
     if (on && window.HifzTest && window.HifzTest.leave) {
       [].forEach.call(document.querySelectorAll('section.seg.testing'), function (sec) { try { window.HifzTest.leave(sec); } catch (e) {} });
     }
+    if (!on && window.HifzTest && window.HifzTest.leaveAll) { try { window.HifzTest.leaveAll(); } catch (e) {} }   // the whole-surah test (2026-11-15)
     if (window.HifzTranslate && window.HifzTranslate.hide) { try { window.HifzTranslate.hide(); } catch (e) {} }
     if (on) de.setAttribute('data-read', ''); else de.removeAttribute('data-read');
     var r = {};

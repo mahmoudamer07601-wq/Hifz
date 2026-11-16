@@ -749,7 +749,7 @@
       return;
     }
     var w = e.target.closest && e.target.closest('.quran .wd');
-    if (w && P.tap && !w.closest('section.testing') && !e.target.closest('.aya')) {
+    if (w && P.tap && !w.closest('section.testing, .segs.testing') && !e.target.closest('.aya')) {
       var a = +w.getAttribute('data-a'), i = +w.getAttribute('data-i') || 0;
       if (!a) return;
       if (!i) { var nx = w.nextElementSibling; while (nx && !nx.hasAttribute('data-i')) nx = nx.nextElementSibling; if (nx && +nx.getAttribute('data-a') === a) i = +nx.getAttribute('data-i'); }

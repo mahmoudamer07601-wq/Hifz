@@ -146,7 +146,7 @@
   document.addEventListener('pointerdown', function (e) { lastPT = e.pointerType || 'mouse'; }, true);
   function wordOf(t) {
     var w = t && t.closest && t.closest('.quran .wd');
-    if (!w || !w.hasAttribute('data-a') || w.closest('section.testing')) return null;
+    if (!w || !w.hasAttribute('data-a') || w.closest('section.testing, .segs.testing')) return null;
     return w;
   }
   document.addEventListener('click', function (e) {

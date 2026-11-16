@@ -11,6 +11,7 @@
      and a result that repeats the previous one before going on (Chrome on Android may give the
      whole text again; the reciter may start the phrase again) counts only its new words, unless
      the repeated words are what the text says next.
+   - The whole surah (app/test.js, 2026-11-15): the same check over every word of the surah, across its segments.
    - Record yourself: the microphone is recorded on this device only (MediaRecorder; kept in the
      browser, IndexedDB "hifz-rec", one recording per segment); play it back, the reciter's
      segment, or both one after the other.
@@ -27,19 +28,19 @@
   var de = document.documentElement;
   var TX = {
     ar: { listening: 'أستمع… ابدأ التلاوة', stopL: 'أوقف الاستماع', heard: 'سُمع: {0}', noMic: 'اسمح للمتصفح باستعمال الميكروفون.',
-      noNet: 'التحقق الفوري يحتاج اتصالاً بالإنترنت.', noRec: 'لا يدعم هذا المتصفح التعرّف على الكلام.', done: 'انتهى المقطع: {0} صحيحة، {1} فاتتك.',
+      noNet: 'التحقق الفوري يحتاج اتصالاً بالإنترنت.', noRec: 'لا يدعم هذا المتصفح التعرّف على الكلام.', done: 'انتهى المقطع: {0} صحيحة، {1} فاتتك.', doneS: 'انتهت السورة: {0} صحيحة، {1} فاتتك.',
       score: '{0} صحيحة · {1} فاتتك', rec: 'جارٍ التسجيل… {0}', stopR: 'أوقف التسجيل', mine: 'تلاوتي', his: 'القارئ', both: 'القارئ ثم أنا',
       del: 'احذف التسجيل', saved: 'تسجيلك ({0}) محفوظ على هذا الجهاز فقط.', privacy: 'التعرّف على الكلام من خدمة المتصفح (Google في Chrome)، ويحتاج اتصالاً.',
       wTitle: 'اكتب المقطع من حفظك', wHint: 'اكتب الكلمات بالترتيب، بالتشكيل أو بدونه؛ تُقارن الحروف فقط.', wCheck: 'صحّح', wClear: 'امسح',
       wDone: '{0} صحيحة · {1} فاتتك · {2} زائدة', wNone: 'لم تكتب شيئاً بعد.' },
     en: { listening: 'Listening… start reciting', stopL: 'Stop listening', heard: 'Heard: {0}', noMic: 'Allow the browser to use the microphone.',
-      noNet: 'Live checking needs an internet connection.', noRec: "This browser doesn't offer speech recognition.", done: 'End of the segment: {0} right, {1} missed.',
+      noNet: 'Live checking needs an internet connection.', noRec: "This browser doesn't offer speech recognition.", done: 'End of the segment: {0} right, {1} missed.', doneS: 'End of the surah: {0} right, {1} missed.',
       score: '{0} right · {1} missed', rec: 'Recording… {0}', stopR: 'Stop recording', mine: 'Mine', his: 'Reciter', both: 'Reciter, then me',
       del: 'Delete the recording', saved: 'Your recording ({0}) is kept on this device only.', privacy: "Speech recognition is the browser's service (Google in Chrome) and needs a connection.",
       wTitle: 'Write the segment from memory', wHint: 'Type the words in order, with or without diacritics; only the letters are compared.', wCheck: 'Check', wClear: 'Clear',
       wDone: '{0} right · {1} missed · {2} extra', wNone: 'Nothing written yet.' },
     es: { listening: 'Escuchando… empiece a recitar', stopL: 'Dejar de escuchar', heard: 'Oído: {0}', noMic: 'Permita al navegador usar el micrófono.',
-      noNet: 'La comprobación en directo necesita conexión a internet.', noRec: 'Este navegador no ofrece reconocimiento de voz.', done: 'Fin del segmento: {0} bien, {1} omitidas.',
+      noNet: 'La comprobación en directo necesita conexión a internet.', noRec: 'Este navegador no ofrece reconocimiento de voz.', done: 'Fin del segmento: {0} bien, {1} omitidas.', doneS: 'Fin de la sura: {0} bien, {1} omitidas.',
       score: '{0} bien · {1} omitidas', rec: 'Grabando… {0}', stopR: 'Detener la grabación', mine: 'La mía', his: 'Recitador', both: 'Recitador y luego yo',
       del: 'Borrar la grabación', saved: 'Su grabación ({0}) se guarda solo en este dispositivo.', privacy: 'El reconocimiento de voz es un servicio del navegador (Google en Chrome) y necesita conexión.',
       wTitle: 'Escriba el segmento de memoria', wHint: 'Escriba las palabras en orden, con o sin vocales; solo se comparan las letras.', wCheck: 'Corregir', wClear: 'Borrar',
@@ -122,6 +123,7 @@
         if (!res.isFinal) interim += txt;
         else if (!me.done[r]) { me.done[r] = true; feed(me, txt); }   // a final result counts once, even when sent again
       }
+      if (live !== me) return;          // the last word was reached: the end's message stays (2026-11-15)
       status(sec, interim ? fmt(T('heard'), interim) : T('listening') + ' · ' + fmt(T('score'), nm(me.okN), nm(me.missN)));
     };
     rec.onerror = function (e) {
@@ -155,9 +157,10 @@
       var a = +w.getAttribute('data-a'); if (a && window.HifzTest) window.HifzTest.slip(a);
     });
     me.at = r.at;
-    var cur = me.words[Math.min(me.at, me.words.length - 1)];
-    if (cur) { try { cur.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (x) {} }
-    if (me.at >= me.words.length) { var sec = me.sec; stop(sec); status(sec, fmt(T('done'), nm(me.okN), nm(me.missN)), me.missN > 0); }
+    var cur = me.words[Math.min(me.at, me.words.length - 1)], whole = me.sec.classList.contains('segs');
+    // the whole surah (app/test.js, 2026-11-15): the place reached stays in the middle of the screen
+    if (cur) { try { cur.scrollIntoView({ block: whole ? 'center' : 'nearest', behavior: 'smooth' }); } catch (x) {} }
+    if (me.at >= me.words.length) { var sec = me.sec; stop(sec); status(sec, fmt(T(whole ? 'doneS' : 'done'), nm(me.okN), nm(me.missN)), me.missN > 0); }
   }
   function stop(sec) {
     if (!live || (sec && live.sec !== sec)) return;

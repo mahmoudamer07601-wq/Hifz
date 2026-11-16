@@ -62,6 +62,19 @@ html[data-read] .segs .quran{display:inline}
 html[data-read] .segs .bism{display:block;text-align:center;text-align-last:center;margin:0 0 .3rem}
 html[data-read] .segs .quran .pgm{display:inline-block;margin:0 .3em;vertical-align:.3em;font-size:calc(11px * var(--ui,1));line-height:1.3}
 html[data-read][data-big] .segs{text-align:right;text-align-last:auto}
+/* the whole-surah test (app/test.js, 2026-11-15): its button under the title; its bar stays at the top while the text scrolls */
+.rd-test{display:none}
+html[data-read] .segs .rd-test{display:flex;justify-content:center;margin:0 0 .9rem}
+.rd-tst{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:calc(14px * var(--ui,1))}
+.rd-tst[aria-pressed=true]{background:var(--ctl-on,#3d3a33);color:var(--ctl-on-ink,#fff);border-color:var(--ctl-on,#3d3a33)}
+html[data-read] .segs>.tbar{position:sticky;top:calc(var(--tools-h,3rem) + .3rem);z-index:6;margin:0 0 1rem;text-align:start;text-align-last:auto;
+ box-shadow:0 4px 14px rgba(0,0,0,.12)}
+html[data-read] .segs>.tbar.stuck :is(.tb-tip,[data-t=all]){display:none!important}
+.tb-mark{height:0}
+@media (max-width:700px){html[data-read] .segs>.tbar .tb-tip{display:none}
+ html[data-read] .segs>.tbar{padding:.4rem .45rem;margin-bottom:.7rem}
+ html[data-read] .segs>.tbar .tb-row{gap:.25rem;margin-bottom:.25rem}
+ html[data-read] .segs>.tbar button{padding:.28em .6em}}
 html:is([data-theme=night],[data-theme=black])[data-read] .segs{box-shadow:none;border:1px solid var(--line)}
 @media (max-width:700px){html[data-read] .segs{margin:0 0 .6rem;padding:1rem .9rem 1.2rem;box-shadow:none;text-align:right}
  html[data-read] .segs .rd-h{font-size:calc(22px * min(var(--qscale,1),1.6));margin:.2rem 0 .5rem}}
@@ -152,24 +165,24 @@ html.rp-open .pbar{display:none}
 .tb-live[hidden],.tb-rec[hidden]{display:none}
 .tb-rec p{margin:0 0 .35rem;font-weight:400;color:var(--muted,#5a5548)}
 .tb-rec .vseg button{font-size:.92em}
-section.testing .quran .wd{position:relative}
-section.testing:not(.h-fade) .quran .wd:not(.shown):not(.wm){color:transparent!important;box-shadow:inset 0 -.12em 0 0 var(--muted,#8a8476);border-radius:0}
-section.testing:not(.h-fade) .quran .wd:not(.shown):not(.wm) *{color:transparent!important}
+section.testing .quran .wd,.segs.testing .quran .wd{position:relative}
+section.testing:not(.h-fade) .quran .wd:not(.shown):not(.wm),.segs.testing:not(.h-fade) .quran .wd:not(.shown):not(.wm){color:transparent!important;box-shadow:inset 0 -.12em 0 0 var(--muted,#8a8476);border-radius:0}
+section.testing:not(.h-fade) .quran .wd:not(.shown):not(.wm) *,.segs.testing:not(.h-fade) .quran .wd:not(.shown):not(.wm) *{color:transparent!important}
 /* fade (2026-10-31): only the drawn words are blank */
-section.testing.h-fade .quran .wd.fd:not(.shown){color:transparent!important;box-shadow:inset 0 -.12em 0 0 var(--muted,#8a8476);border-radius:0;cursor:pointer}
-section.testing.h-fade .quran .wd.fd:not(.shown) *{color:transparent!important}
+section.testing.h-fade .quran .wd.fd:not(.shown),.segs.testing.h-fade .quran .wd.fd:not(.shown){color:transparent!important;box-shadow:inset 0 -.12em 0 0 var(--muted,#8a8476);border-radius:0;cursor:pointer}
+section.testing.h-fade .quran .wd.fd:not(.shown) *,.segs.testing.h-fade .quran .wd.fd:not(.shown) *{color:transparent!important}
 .tb-fade{flex:1 1 100%}
 .tb-fade[hidden]{display:none}
 .tb-fade .tb-f{flex:1 1 auto;min-height:2.3em;padding:.25em .6em;border:1px solid var(--ctl-line);border-radius:10px;background:var(--ctl);color:var(--ctl-ink);font:inherit;font-weight:600;cursor:pointer}
 .tb-fade .tb-f[aria-pressed="true"]{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
-section.testing.h-letters .quran .wd:not(.shown):not(.wm)::before{content:attr(data-h);position:absolute;right:0;top:0;color:var(--muted,#5a5548);pointer-events:none}
-section.testing.h-firsts .quran .wd[data-i="1"]:not(.shown){color:inherit!important;box-shadow:none}
-section.testing.h-firsts .quran .wd[data-i="1"]:not(.shown) *{color:inherit!important}
-section.testing .quran .wd.shown.help{box-shadow:inset 0 -.12em 0 0 #d9a33a}
-section.testing .quran .wd.shown.ok{box-shadow:inset 0 -.12em 0 0 var(--ok)}
-section.testing .quran .wd.shown.miss{box-shadow:inset 0 -.14em 0 0 var(--danger);background:rgba(179,38,30,.12)}
-section.testing .quran .wd:not(.shown):not(.wm){cursor:pointer}
-section.testing .pgm{opacity:.75}
+section.testing.h-letters .quran .wd:not(.shown):not(.wm)::before,.segs.testing.h-letters .quran .wd:not(.shown):not(.wm)::before{content:attr(data-h);position:absolute;right:0;top:0;color:var(--muted,#5a5548);pointer-events:none}
+section.testing.h-firsts .quran .wd[data-i="1"]:not(.shown),.segs.testing.h-firsts .quran .wd[data-i="1"]:not(.shown){color:inherit!important;box-shadow:none}
+section.testing.h-firsts .quran .wd[data-i="1"]:not(.shown) *,.segs.testing.h-firsts .quran .wd[data-i="1"]:not(.shown) *{color:inherit!important}
+section.testing .quran .wd.shown.help,.segs.testing .quran .wd.shown.help{box-shadow:inset 0 -.12em 0 0 #d9a33a}
+section.testing .quran .wd.shown.ok,.segs.testing .quran .wd.shown.ok{box-shadow:inset 0 -.12em 0 0 var(--ok)}
+section.testing .quran .wd.shown.miss,.segs.testing .quran .wd.shown.miss{box-shadow:inset 0 -.14em 0 0 var(--danger);background:rgba(179,38,30,.12)}
+section.testing .quran .wd:not(.shown):not(.wm),.segs.testing .quran .wd:not(.shown):not(.wm){cursor:pointer}
+section.testing .pgm,.segs.testing .pgm{opacity:.75}
 .quran .aya.slip{position:relative}
 .quran .aya.slip::after{content:"";position:absolute;top:-.05em;left:-.1em;width:.42em;height:.42em;border-radius:50%;background:var(--danger)}
 .quran .aya.flash{animation:hz-flash 2s ease-out}

@@ -14,7 +14,13 @@
    - Fade (2026-10-31, at the learner's request): a share of the words blanked at random, 25, 50, 75 then
      100 %, the same words staying blank as the share grows ("Other words" draws them again).
    - Worksheet: prints the segment with the first letters as clues, on its own page.
-   window.HifzTest = {active(), slips(), clearSlips(), slip(a), reveal(el)}.
+   - The whole surah (2026-11-15, at the learner's request: "Can I test the whole surah all together not segments?"): in
+     the read-through view (app/nav.js), «اختبار السورة كاملة» under the title hides the whole surah (div.segs#whole) with
+     the same hints, Fade and Recite aloud (which goes on across the segments and keeps the place it has reached in the
+     middle of the screen); the bar stays at the top while the text scrolls.  Record yourself, Write it out and the
+     worksheet stay with the segments.  One test at a time: a segment's test ends the surah's and the other way round;
+     leaving the read-through view ends it.
+   window.HifzTest = {active(), slips(), clearSlips(), slip(a), reveal(el), enter(sec), leave(sec), enterAll(), leaveAll(), all()}.
    Interface text in three languages, following the switch of tools/ui.py (window.hifzUI). */
 (function () {
   'use strict';
@@ -133,6 +139,7 @@
     if (window.HifzRecite && window.HifzRecite.paintWrite) window.HifzRecite.paintWrite(sec);
     if (!window.HifzRecite || !window.HifzRecite.canListen()) b.querySelector('.tb-recite').hidden = true;
     if (!window.HifzRecite || !window.HifzRecite.canRecord()) b.querySelector('.tb-record').hidden = true;
+    if (b.classList.contains('tb-all')) ['record', 'write', 'sheet'].forEach(function (k) { var x = b.querySelector('[data-t="' + k + '"]'); if (x) x.hidden = true; });
   }
   function badges(sec, show) {
     [].forEach.call(sec.querySelectorAll('.simb'), function (x) { x.parentNode.removeChild(x); });
@@ -148,6 +155,7 @@
   }
   function enter(sec) {
     if (on[sec.id]) return;
+    if (ALL && on[ALL.id]) leave(ALL);
     on[sec.id] = true;
     words(sec).forEach(function (w) { if (!w.hasAttribute('data-h')) w.setAttribute('data-h', clue(w)); w.classList.remove('shown', 'help', 'ok', 'miss'); });
     sec.classList.add('testing');
@@ -159,16 +167,49 @@
     if (window.HifzPlayer) { var st = window.HifzPlayer.state(); if (st.running && !st.paused) window.HifzPlayer.toggle(); }
   }
   function leave(sec) {
-    if (!on[sec.id]) return;
+    if (!sec || !on[sec.id]) return;
     delete on[sec.id];
     if (window.HifzRecite) window.HifzRecite.stop(sec);
     sec.classList.remove('testing', 'h-hidden', 'h-letters', 'h-firsts', 'h-fade');
     words(sec).forEach(function (w) { w.classList.remove('shown', 'help', 'ok', 'miss', 'fd'); });
-    var b = sec.querySelector('.tbar'); if (b) b.parentNode.removeChild(b);
+    var b = sec === ALL ? sec.querySelector('.tbar.tb-all') : sec.querySelector('.tbar'); if (b) b.parentNode.removeChild(b);
+    if (sec === ALL) {
+      var mk = sec.querySelector('.tb-mark'); if (mk) mk.parentNode.removeChild(mk);
+      if (sec._stick) { window.removeEventListener('scroll', sec._stick); sec._stick = null; }
+    }
     badges(sec, false);
-    var t = sec.querySelector('.player .tst'); if (t) t.setAttribute('aria-pressed', 'false');
+    var t = sec === ALL ? document.querySelector('.rd-tst') : sec.querySelector('.player .tst'); if (t) t.setAttribute('aria-pressed', 'false');
     if (window.HifzAwake && !active()) window.HifzAwake(false);
   }
+  // ---- the whole surah (2026-11-15): div.segs#whole in the read-through view ----
+  var ALL = document.getElementById('whole');
+  function enterAll() {
+    if (!ALL || on[ALL.id]) return;
+    [].forEach.call(document.querySelectorAll('section.seg.testing'), leave);
+    on[ALL.id] = true;
+    words(ALL).forEach(function (w) { if (!w.hasAttribute('data-h')) w.setAttribute('data-h', clue(w)); w.classList.remove('shown', 'help', 'ok', 'miss'); });
+    ALL.classList.add('testing');
+    var row = ALL.querySelector('.rd-test'), b = bar(ALL), mark = document.createElement('div');
+    b.classList.add('tb-all'); mark.className = 'tb-mark';
+    var r2 = b.querySelectorAll('.tb-row')[1]; r2.insertBefore(b.querySelector('[data-t="nextw"]'), r2.firstChild);   // Next word beside Recite aloud
+    row.parentNode.insertBefore(b, row.nextSibling); row.parentNode.insertBefore(mark, b);
+    // once the text has scrolled under it, the bar keeps the hints (and Fade's shares), Next word, Recite aloud and End
+    var pend = false;
+    ALL._stick = function () {
+      if (pend) return; pend = true;
+      requestAnimationFrame(function () {
+        pend = false;
+        var t = document.querySelector('.tools'), top = t ? t.getBoundingClientRect().bottom : 0;
+        b.classList.toggle('stuck', mark.getBoundingClientRect().top < top);
+      });
+    };
+    window.addEventListener('scroll', ALL._stick, { passive: true });
+    paintBar(ALL); setMode(ALL, 'hidden'); badges(ALL, true);
+    var t = document.querySelector('.rd-tst'); if (t) t.setAttribute('aria-pressed', 'true');
+    if (window.HifzAwake) window.HifzAwake(true);
+    if (window.HifzPlayer) { var st = window.HifzPlayer.state(); if (st.running && !st.paused) window.HifzPlayer.toggle(); }
+  }
+  function leaveAll() { if (ALL) leave(ALL); }
   function active() { for (var k in on) if (on[k]) return true; return false; }
   function reveal(w, help) {
     if (!w || w.classList.contains('shown')) return;
@@ -251,7 +292,8 @@
     var t = e.target;
     var tb = t.closest && t.closest('section.seg .player .tst');
     if (tb) { e.preventDefault(); var sec0 = tb.closest('section'); if (on[sec0.id]) leave(sec0); else enter(sec0); return; }
-    var sec = t.closest && t.closest('section.seg.testing');
+    if (t.closest && t.closest('.rd-tst')) { e.preventDefault(); if (ALL && on[ALL.id]) leave(ALL); else enterAll(); return; }
+    var sec = t.closest && t.closest('section.seg.testing, .segs.testing');
     if (!sec) return;
     var b = t.closest('.tbar button');
     if (b) {
@@ -274,7 +316,7 @@
   });
   // an ayah number in test mode shows its ayah (and does not open the reference panel)
   document.addEventListener('click', function (e) {
-    var m = e.target.closest && e.target.closest('section.seg.testing .quran .aya[data-ref]');
+    var m = e.target.closest && e.target.closest('section.seg.testing .quran .aya[data-ref], .segs.testing .quran .aya[data-ref]');
     if (!m) return;
     e.preventDefault(); e.stopPropagation();
     var a = +m.getAttribute('data-ref').split(':')[1], any = false;
@@ -290,5 +332,6 @@
     [].forEach.call(document.querySelectorAll('.quran .aya.slip'), function (m) { m.setAttribute('data-slip', T('slip')); });
   });
   window.HifzTest = { active: active, slips: slips, clearSlips: clearSlips, slip: slip, reveal: reveal, enter: enter, leave: leave,
-    clue: clue, setMode: setMode, fade: fade, paint: paintBar };
+    clue: clue, setMode: setMode, fade: fade, paint: paintBar, enterAll: enterAll, leaveAll: leaveAll,
+    all: function () { return !!(ALL && on[ALL.id]); } };
 })();
