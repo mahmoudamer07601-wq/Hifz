@@ -22,6 +22,21 @@
   var node = document.getElementById('hifz-data');
   if (!node) return;
   var D = JSON.parse(node.textContent), S = D.s, de = document.documentElement;
+  // the reciter (2026-11-18, app/core.js): another reciter's timings ("r" of tools/app_data.py) replace the
+  // first reciter's before anything reads them; D.rec says whose they are
+  (function () {
+    var Au = window.HifzAudio, k = Au && Au.recFor ? Au.recFor(S) : 'mn', x = D.r && D.r[k];
+    D.rec = (x && Au && k !== Au.first()) ? k : (Au && Au.first ? Au.first() : 'mn');
+    if (x && D.rec === k) {
+      D.a = x.a; D.w = x.w; D.j = x.j; D.dur = x.dur;
+      D.g.forEach(function (g, i) { g[6] = x.g[i][0]; g[7] = x.g[i][1]; });
+      var rc = document.querySelector('.idx .rcn');         // the index names him (make_book.py)
+      if (rc) [].forEach.call(rc.querySelectorAll('span[lang]'), function (e) {
+        var l = e.getAttribute('lang');
+        e.textContent = Au.name(l, k) + (l === 'ar' ? ' — مرتل' : ' — murattal');
+      });
+    }
+  })();
   var LET = /[ء-يٱ]/, SP = /(\s+)/;
   var AY = {};      // a -> {w: [word elements, by number], all: [every .wd], m: marker, sec}
   function A(a) { return AY[a] || (AY[a] = { w: [], all: [], m: null, sec: null }); }

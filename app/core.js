@@ -6,13 +6,31 @@
      recording the ledger's cut times were measured on);
    - keeps the browser's install prompt for the Install button of the home page;
    - loads app/athan.js (prayer times and the athan) on every page.
-   The script tag carries data-root (the app's top folder relative to the page) and data-cdn. */
+   The script tag carries data-root (the app's top folder relative to the page) and data-cdn.
+   Reciters (2026-11-18, al-ʿAfasy added at the learner's request): data-reciters lists them,
+   [{k: key, u: address pattern (NNN = surah on three digits, {s} = without zeros), n: [name ar, en,
+   es], x: [surahs his timings do not fit, played by the first reciter]}]; the first is the ledger's
+   (Minshawi, data-cdn).  The choice is kept on the device (localStorage "hifz-reciter"); a surah file
+   reads it before its words are timed (app/words.js), so a change reloads the page.  Saved recordings
+   of the first reciter keep their keys ("surah:NNN", "seg:<stem>"); another reciter's are "af:surah:NNN"
+   (no segment mp3s: the segments are cut from the first reciter's recording). */
 (function () {
   'use strict';
   var me = document.currentScript,
     root = (me && me.getAttribute('data-root')) || '',
     cdn = (me && me.getAttribute('data-cdn')) || '';
-  var DBN = 'hifz-audio', dbp = null;
+  var DBN = 'hifz-audio', dbp = null, RK = 'hifz-reciter';
+  var RECS = null;
+  try { RECS = JSON.parse((me && me.getAttribute('data-reciters')) || 'null'); } catch (e) { RECS = null; }
+  if (!RECS || !RECS.length) RECS = [{ k: 'mn', u: cdn, n: ['محمد صديق المنشاوي', 'Muḥammad Ṣiddīq al-Minshāwī', 'Muḥammad Ṣiddīq al-Minshāwī'], x: [] }];
+  function info(k) { for (var i = 0; i < RECS.length; i++) if (RECS[i].k === k) return RECS[i]; return RECS[0]; }
+  function chosen() {
+    var k = null;
+    try { k = localStorage.getItem(RK); } catch (e) {}
+    return info(k).k;
+  }
+  // the reciter that plays surah s: the chosen one, unless his timings do not fit that surah
+  function recFor(s, k) { var r = info(k || chosen()); return r.x && r.x.indexOf(+s) >= 0 ? RECS[0].k : r.k; }
 
   function pad(s) { s = String(s); while (s.length < 3) s = '0' + s; return s; }
 
@@ -46,8 +64,23 @@
   var A = window.HifzAudio = {
     root: root,
     pad: pad,
-    // the recording of surah s at its address
-    url: function (s) { return cdn.replace('NNN', pad(s)); },
+    reciters: RECS,
+    info: info,
+    // the chosen reciter, and the one that plays surah s (the first where the chosen one's timings do not fit)
+    rec: chosen,
+    recFor: recFor,
+    first: function () { return RECS[0].k; },
+    setRec: function (k) {
+      k = info(k).k;
+      try { localStorage.setItem(RK, k); } catch (e) {}
+      document.dispatchEvent(new CustomEvent('hifz-reciter', { detail: k }));
+    },
+    // the name of reciter k (default: the one of surah s, or the chosen one) in language l (ar, en, es)
+    name: function (l, k) { var r = info(k || chosen()); return r.n[l === 'en' ? 1 : l === 'es' ? 2 : 0]; },
+    // the recording of surah s at its address (reciter k, default: the one that plays it)
+    url: function (s, k) { return info(k || recFor(s)).u.replace('NNN', pad(s)).replace('{s}', String(+s)); },
+    // the key a whole surah is saved under on this device
+    key: function (s, k) { k = k || recFor(s); return (k === RECS[0].k ? '' : k + ':') + 'surah:' + pad(s); },
     // a saved mp3 (Blob) or null; keys: "surah:NNN" (a whole surah), "seg:<stem>" (one segment)
     get: function (key) {
       var q;
@@ -79,11 +112,12 @@
     // where segment <stem> of surah s plays from:
     // {url, key, whole: true when the mp3 is the segment itself, saved: on this device}
     source: function (s, stem) {
-      return A.get('seg:' + stem).then(function (b) {
+      var k = recFor(s), first = k === RECS[0].k;
+      return (first ? A.get('seg:' + stem) : Promise.resolve(null)).then(function (b) {
         if (b) return { url: URL.createObjectURL(b), key: 'seg:' + stem, whole: true, saved: true };
-        return A.get('surah:' + pad(s)).then(function (b2) {
-          if (b2) return { url: URL.createObjectURL(b2), key: 'surah:' + pad(s), whole: false, saved: true };
-          return { url: A.url(s), key: 'url:' + pad(s), whole: false, saved: false };
+        return A.get(A.key(s, k)).then(function (b2) {
+          if (b2) return { url: URL.createObjectURL(b2), key: A.key(s, k), whole: false, saved: true };
+          return { url: A.url(s, k), key: 'url:' + k + ':' + pad(s), whole: false, saved: false };
         });
       });
     },

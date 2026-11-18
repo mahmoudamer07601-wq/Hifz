@@ -21,6 +21,9 @@ body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;c
 .btn.guide.new{background:var(--gold);border-color:var(--gold);color:var(--paper);font-weight:600}
 .btn.danger{color:var(--red)}
 .btn[hidden]{display:none}
+.recs{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem;margin:.55rem 0 .2rem}
+.recs .rl{color:var(--muted);font-size:14px}
+.recs .btn.rec[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--paper);font-weight:600}
 .find{margin:1rem 0 1.4rem}
 .find input{width:100%;font:inherit;font-size:16px;padding:.7rem 1.1rem;border:1px solid #b9b2a1;border-radius:999px;background:var(--paper);color:var(--ink)}
 .find input:focus{outline:2px solid var(--rule);outline-offset:1px}

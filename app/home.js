@@ -9,6 +9,10 @@
    - offline audio: save all, add the learner's own mp3s (NNN.mp3 for a whole surah, or the
      segment files NNN-Sxx-vaaa-bbb.mp3), remove; a file is kept only when its duration matches
      the recording the ledger's cut times were measured on;
+   - the reciter (2026-11-18): the choice of app/core.js (kept on the device); ⤓, Save all and the
+     list follow the chosen reciter (another reciter's recording is saved as "af:surah:NNN", checked
+     against his duration, data "rd"); an mp3 of one's own is kept under the reciter whose recording
+     it matches;
    - the Install button, when the browser offers one;
    - the User guide button (guide.html), highlighted until the guide has been opened once.
    Interface text in three languages, following the switch of tools/ui.py (window.hifzUI). */
@@ -186,17 +190,23 @@
   var buttons = [].slice.call(document.querySelectorAll('.sv'));
 
   function say(t, bad) { msg.hidden = !t; msg.textContent = t || ''; msg.className = 'msg' + (bad ? ' bad' : ''); }
-  function partOf(s) { var n = 0; BY[s].segs.forEach(function (g) { if (saved['seg:' + g[0]]) n++; }); return n; }
+  var FIRST = A.first ? A.first() : 'mn';
+  function recOf(s) { return A.recFor ? A.recFor(s) : FIRST; }
+  function keyOf(s) { return A.key ? A.key(s, recOf(s)) : 'surah:' + A.pad(s); }
+  function durOf(s, k) { k = k || recOf(s); return k === FIRST ? BY[s].dur : (BY[s].rd || {})[k]; }
+  function isSurahKey(k) { return /(^|:)surah:\d{3}$/.test(k); }
+  function partOf(s) { var n = 0; if (recOf(s) !== FIRST) return 0; BY[s].segs.forEach(function (g) { if (saved['seg:' + g[0]]) n++; }); return n; }
   function paint() {
+    paintRecs();
     buttons.forEach(function (b) {
-      var s = +b.getAttribute('data-s'), k = 'surah:' + A.pad(s), p = partOf(s), whole = saved[k] || p === BY[s].segs.length;
+      var s = +b.getAttribute('data-s'), k = keyOf(s), p = partOf(s), whole = saved[k] || (p && p === BY[s].segs.length);
       b.className = 'sv' + (busy[s] != null ? ' busy' : sure[s] ? ' sure' : whole ? ' saved' : p ? ' part' : '');
       b.textContent = busy[s] != null ? nm(busy[s]) + (L() === 'ar' ? '٪' : '%') : sure[s] ? '✕' : whole ? '✓' : p ? '◐' : '⤓';
       var t = busy[s] != null ? fmt(T('saving'), nm(busy[s])) : sure[s] ? T('sure') : whole ? T('saved') : p ? T('part') : T('save');
       b.title = t; b.setAttribute('aria-label', t);
     });
     var ns = 0, ng = 0, bytes = 0, k;
-    for (k in saved) { if (k.indexOf('surah:') === 0) ns++; else ng++; bytes += saved[k].size || 0; }
+    for (k in saved) { if (isSurahKey(k)) ns++; else ng++; bytes += saved[k].size || 0; }
     var what = [ns ? T('surahs')(ns) : '', ng ? T('segs')(ng) : ''].filter(Boolean).join(L() === 'ar' ? '، ' : ', ');
     stat.textContent = ns || ng ? fmt(T('st'), what, size(bytes)) : T('none');
     var lb = bClear.querySelector('.lb'), sr = bClear.querySelector('.sr');
@@ -220,7 +230,7 @@
   function persist() { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {} }
 
   function download(s, onp) {
-    return fetch(A.url(s), { mode: 'cors', credentials: 'omit' }).then(function (r) {
+    return fetch(A.url(s, recOf(s)), { mode: 'cors', credentials: 'omit' }).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       var total = +(r.headers.get('content-length') || 0), got = 0, parts = [];
       if (!r.body || !r.body.getReader) return r.blob();
@@ -250,12 +260,12 @@
     return download(s, function (f) { busy[s] = Math.floor(f * 100); if (onp) onp(f); paint(); })
       .then(function (blob) {
         return duration(blob).then(function (d) {
-          var want = BY[s].dur;
+          var want = durOf(s);
           if (!(Math.abs(d - want) <= 0.6)) {
             var e = new Error(fmt(T('mismatch'), iso(BY[s].name), nm(isFinite(d) ? d.toFixed(1) : '?'), nm(want.toFixed(1))));
             e.shown = true; throw e;
           }
-          return A.put('surah:' + A.pad(s), blob, { size: blob.size, from: 'address', at: new Date().toISOString() });
+          return A.put(keyOf(s), blob, { size: blob.size, from: 'address', rec: recOf(s), at: new Date().toISOString() });
         });
       })
       .then(function () { delete busy[s]; return refresh().then(function () { return true; }); },
@@ -265,12 +275,12 @@
   buttons.forEach(function (b) {
     b.addEventListener('click', function (ev) {
       ev.preventDefault();
-      var s = +b.getAttribute('data-s'), k = 'surah:' + A.pad(s);
+      var s = +b.getAttribute('data-s'), k = keyOf(s);
       if (busy[s] != null || all) return;
       if (saved[k] || partOf(s)) {
         if (!sure[s]) { sure[s] = true; paint(); setTimeout(function () { if (sure[s]) { delete sure[s]; paint(); } }, 3500); return; }
         delete sure[s];
-        var keys = [k].concat(BY[s].segs.map(function (g) { return 'seg:' + g[0]; })).filter(function (x) { return saved[x]; });
+        var keys = [k].concat(recOf(s) === FIRST ? BY[s].segs.map(function (g) { return 'seg:' + g[0]; }) : []).filter(function (x) { return saved[x]; });
         Promise.all(keys.map(function (x) { return A.del(x); })).then(refresh);
         return;
       }
@@ -282,7 +292,7 @@
 
   bAll.addEventListener('click', function () {
     if (all) return;
-    var todo = D.surahs.map(function (x) { return x.s; }).filter(function (s) { return !saved['surah:' + A.pad(s)] && partOf(s) < BY[s].segs.length; });
+    var todo = D.surahs.map(function (x) { return x.s; }).filter(function (s) { return !saved[keyOf(s)] && (recOf(s) !== FIRST || partOf(s) < BY[s].segs.length); });
     if (!todo.length) return;
     all = true; stop = false; say(''); bAll.hidden = true; bStop.hidden = false; prog.hidden = false;
     var i = 0, ok = 0;
@@ -324,25 +334,45 @@
         say(fmt(T('added'), T('surahs')(nS), T('segs')(nG), T('files')(skip)), nS + nG === 0);
         return refresh();
       }
-      var f = files[i++], name = f.name.toLowerCase(), m, key, want;
+      var f = files[i++], name = f.name.toLowerCase(), m, key, want, cands = null;
       bar.style.width = (100 * i / files.length).toFixed(1) + '%';
       pl.textContent = fmt(T('reading'), nm(i), nm(files.length));
-      if ((m = /^(\d{1,3})\.mp3$/.exec(name)) && BY[+m[1]]) { key = 'surah:' + A.pad(+m[1]); want = BY[+m[1]].dur; }
+      if ((m = /^(\d{1,3})\.mp3$/.exec(name)) && BY[+m[1]]) {
+        // a whole surah: kept under the reciter whose recording it matches (the chosen one first)
+        var s0 = +m[1], ks = [recOf(s0)].concat((A.reciters || []).map(function (r) { return r.k; }));
+        cands = ks.filter(function (k, j) { return ks.indexOf(k) === j && durOf(s0, k); }).map(function (k) { return [A.key ? A.key(s0, k) : 'surah:' + A.pad(s0), durOf(s0, k)]; });
+        key = cands[0][0]; want = cands[0][1];
+      }
       else if ((m = /^(\d{3}-s\d\d-v\d{3}-\d{3})\.mp3$/.exec(name)) && STEM[m[1].replace('-s', '-S')]) {
         var g = STEM[m[1].replace('-s', '-S')]; key = 'seg:' + m[1].replace('-s', '-S'); want = g.t1 - g.t0;
       } else { skip++; return next(); }
       return duration(f).then(function (d) {
         // a segment's file is measured after the decoder's start padding (up to a tenth of a second
         // in these files) and to the nearest frame at both cuts, so it may be ~0.16 s shorter than its cut times
-        var tol = key.indexOf('surah:') === 0 ? 0.6 : 0.5;
+        var tol = isSurahKey(key) ? 0.6 : 0.5;
+        if (cands) { var hit = cands.filter(function (c) { return Math.abs(d - c[1]) <= tol; })[0]; if (hit) { key = hit[0]; want = hit[1]; } }
         if (!(Math.abs(d - want) <= tol)) { skip++; return next(); }
         return A.put(key, f, { size: f.size, from: 'file', name: f.name, at: new Date().toISOString() }).then(function () {
-          if (key.indexOf('surah:') === 0) nS++; else nG++;
+          if (isSurahKey(key)) nS++; else nG++;
           return next();
         }, function (e) { prog.hidden = true; inp.value = ''; say(why(e), true); return refresh(); });
       });
     }
     next();
+  });
+
+  /* ---------------- the reciter (2026-11-18) ---------------- */
+  var recBtns = [].slice.call(document.querySelectorAll('.recs [data-rec]'));
+  function paintRecs() {
+    var cur = A.rec ? A.rec() : FIRST;
+    recBtns.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-rec') === cur ? 'true' : 'false'); });
+  }
+  recBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (all || !A.setRec) return;
+      A.setRec(b.getAttribute('data-rec'));
+      sure = {}; say(''); paint();
+    });
   });
 
   /* ---------------- install ---------------- */

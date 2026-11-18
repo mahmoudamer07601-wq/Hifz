@@ -62,7 +62,8 @@
       weak: 'آيات تعثّرت فيها: {0}', drillWeak: 'درّبني عليها', clearWeak: 'امسحها', sure: 'اضغط مرة أخرى للمسح', noWeak: 'لا آيات معلَّمة بعد. في وضع الاختبار تُعلَّم الآية التي احتجت فيها إلى تلميح.',
       x1: '×١', x15: '×١٫٥', x2: '×٢', err: 'تعذّر التشغيل: لا اتصال، وهذه السورة غير محفوظة على هذا الجهاز. احفظها من الصفحة الرئيسية.',
       focus: 'تركيز', fclose: 'إغلاق', fprev: 'الآية السابقة', fnext: 'الآية التالية', joined: 'يصل القارئ هذه الآية بما بعدها دون وقف',
-      reciter: 'محمد صديق المنشاوي', surahN: 'سورة {0}'
+      reciter: 'محمد صديق المنشاوي', surahN: 'سورة {0}', t_rec: 'القارئ',
+      notHere: 'توقيتات {0} لا تطابق تسجيله لهذه السورة، فتُسمع فيها تلاوة {1}.'
     },
     en: {
       player: 'Player', play: 'Play', pause: 'Pause', prev: 'Previous ayah', next: 'Next ayah', settings: 'Practice settings',
@@ -79,7 +80,8 @@
       weak: 'Ayat I slipped on: {0}', drillWeak: 'Drill them', clearWeak: 'Clear them', sure: 'Tap again to clear', noWeak: 'No ayat marked yet. In test mode, an ayah is marked when you needed a hint in it.',
       x1: '×1', x15: '×1.5', x2: '×2', err: "Can't play: offline, and this surah isn't saved on this device. Save it from the home page.",
       focus: 'Focus', fclose: 'Close', fprev: 'Previous ayah', fnext: 'Next ayah', joined: 'The reciter joins this ayah to the next without a pause',
-      reciter: 'Muḥammad Ṣiddīq al-Minshāwī', surahN: 'Surah {0}'
+      reciter: 'Muḥammad Ṣiddīq al-Minshāwī', surahN: 'Surah {0}', t_rec: 'Reciter',
+      notHere: "{0}'s timings do not fit his recording of this surah, so it plays {1}'s recitation."
     },
     es: {
       player: 'Reproductor', play: 'Reproducir', pause: 'Pausa', prev: 'Aleya anterior', next: 'Aleya siguiente', settings: 'Ajustes de práctica',
@@ -97,7 +99,8 @@
       weak: 'Aleyas en que tropecé: {0}', drillWeak: 'Practicarlas', clearWeak: 'Borrarlas', sure: 'Toque de nuevo para borrar', noWeak: 'Aún no hay aleyas marcadas. En el modo de prueba se marca la aleya en que necesitó una pista.',
       x1: '×1', x15: '×1,5', x2: '×2', err: 'No se puede reproducir: sin conexión y esta sura no está guardada en este dispositivo. Guárdela desde la página principal.',
       focus: 'Enfoque', fclose: 'Cerrar', fprev: 'Aleya anterior', fnext: 'Aleya siguiente', joined: 'El recitador une esta aleya a la siguiente sin pausa',
-      reciter: 'Muḥammad Ṣiddīq al-Minshāwī', surahN: 'Sura {0}'
+      reciter: 'Muḥammad Ṣiddīq al-Minshāwī', surahN: 'Sura {0}', t_rec: 'Recitador',
+      notHere: 'Los tiempos de {0} no corresponden a su grabación de esta sura, así que se oye la recitación de {1}.'
     }
   };
   function T(k) { return TX[lang()][k]; }
@@ -232,16 +235,19 @@
   try { au.preservesPitch = true; } catch (e) {}
   function pad(s) { s = String(s); while (s.length < 3) s = '0' + s; return s; }
   function now() { return au.currentTime + (src ? src.off : 0); }
+  // the reciter whose timings this file uses (app/words.js); a segment's own mp3 is the first reciter's only
+  var REC = D.rec || (Au.first ? Au.first() : 'mn'), FIRST = !Au.first || REC === Au.first();
+  function recName(k) { return Au.name ? Au.name(lang(), k || REC) : T('reciter'); }
   function source(r) {
-    return Au.get('surah:' + pad(S)).then(function (b) {
+    return Au.get(Au.key ? Au.key(S, REC) : 'surah:' + pad(S)).then(function (b) {
       if (b) return { url: URL.createObjectURL(b), key: 'surah', off: 0, blob: true };
       var g = W.segOf(r.a0);
-      var inOne = g && r.kind !== 'slips' && W.segOf(r.a1) === g && (!P.link || r.a0 > g[1]);
+      var inOne = FIRST && g && r.kind !== 'slips' && W.segOf(r.a1) === g && (!P.link || r.a0 > g[1]);
       var online = navigator.onLine !== false;
-      if (online || !inOne) return { url: Au.url(S), key: 'url', off: 0, blob: false, alt: inOne ? g : null };
+      if (online || !inOne) return { url: Au.url(S, REC), key: 'url', off: 0, blob: false, alt: inOne ? g : null };
       return Au.get('seg:' + STEM[g[0]]).then(function (b2) {
         return b2 ? { url: URL.createObjectURL(b2), key: 'seg:' + g[0], off: g[6], blob: true, lo: g[6], hi: g[7] }
-                  : { url: Au.url(S), key: 'url', off: 0, blob: false };
+                  : { url: Au.url(S, REC), key: 'url', off: 0, blob: false };
       });
     });
   }
@@ -511,7 +517,7 @@
   function media() {
     if (!('mediaSession' in navigator) || !window.MediaMetadata || !run) return;
     try {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: rangeLabel(run.r), artist: T('reciter'), album: SNAME.trim(),
+      navigator.mediaSession.metadata = new MediaMetadata({ title: rangeLabel(run.r), artist: recName(), album: SNAME.trim(),
         artwork: [{ src: Au.root + 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
                   { src: Au.root + 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }] });
       var ms = navigator.mediaSession;
@@ -629,6 +635,11 @@
     shade = el('div', 'vshade'); shade.hidden = true;
     sheet = el('div', 'vsheet psheet ui'); sheet.hidden = true; sheet.setAttribute('role', 'dialog'); sheet.setAttribute('aria-modal', 'true');
     var h = el('h2'); h.setAttribute('data-t', 'settings'); sheet.appendChild(h);
+    if (Au.reciters && Au.reciters.length > 1) {          // the reciter (2026-11-18): kept on the device, the page reloads
+      var rs = el('div', 'vseg precs');
+      Au.reciters.forEach(function (x) { var b = el('button'); b.type = 'button'; b.setAttribute('data-rec', x.k); rs.appendChild(b); });
+      var rgr = grp('t_rec', rs), nh = el('p', 'pnote prec-note'); nh.hidden = true; rgr.appendChild(nh); sheet.appendChild(rgr);
+    }
     var kinds = el('div', 'vseg pkinds');
     ['seg', 'unit', 'page', 'quarter', 'surah', 'custom'].forEach(function (k) { var b = el('button'); b.type = 'button'; b.setAttribute('data-kind', k); kinds.appendChild(b); });
     var cust = el('div', 'pcust');
@@ -665,6 +676,16 @@
     });
     sheet.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
+      if (b.hasAttribute('data-rec')) {
+        var k2 = b.getAttribute('data-rec');
+        if (k2 === Au.rec()) return;
+        Au.setRec(k2);
+        stop();
+        var a2 = ctxAyah();
+        try { history.replaceState(null, '', '#a=' + S + ':' + a2); } catch (err) { location.hash = 'a=' + S + ':' + a2; }
+        location.reload();
+        return;
+      }
       if (b.hasAttribute('data-kind')) {
         var k = b.getAttribute('data-kind');
         pick = k === 'custom' ? { kind: 'custom', a0: (pick || R || rangeOf('seg', ctxAyah())).a0, a1: (pick || R || rangeOf('seg', ctxAyah())).a1 } : rangeOf(k, ctxAyah());
@@ -699,6 +720,13 @@
     sheet.setAttribute('dir', lang() === 'ar' ? 'rtl' : 'ltr');
     sheet.setAttribute('aria-label', T('settings'));
     [].forEach.call(sheet.querySelectorAll('[data-t]'), function (e) { e.textContent = T(e.getAttribute('data-t')); });
+    [].forEach.call(sheet.querySelectorAll('[data-rec]'), function (b) {
+      var k = b.getAttribute('data-rec');
+      b.textContent = recName(k);
+      b.setAttribute('aria-pressed', k === Au.rec() ? 'true' : 'false');
+    });
+    var rn2 = sheet.querySelector('.prec-note');
+    if (rn2) { rn2.hidden = REC === Au.rec(); rn2.textContent = rn2.hidden ? '' : fmt(T('notHere'), recName(Au.rec()), recName(REC)); }
     var cur = pick || R || rangeOf('seg', ctxAyah());
     [].forEach.call(sheet.querySelectorAll('[data-kind]'), function (b) {
       var k = b.getAttribute('data-kind'), r = k === 'custom' ? null : rangeOf(k, ctxAyah());
