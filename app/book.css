@@ -47,6 +47,13 @@ html[data-lines] .thumbs{display:inline-flex}
 .thumb i.on{height:2px;background:var(--accent,#8a6a1f)}
 /* the tajweed colour key after each segment, off in the display panel (app/view.js, 2026-10-31) */
 html[data-nolegend] .seg footer :is(.legend,.note){display:none}
+/* the segment titles (2026-11-21): hidden unless switched on in the display panel (app/view.js), so that a
+   reader who does not know the surah does not take the summary for the ayat; the index keeps each segment's
+   number, ayat, page and length */
+html[data-notitles] section.seg>h1{display:none}
+html[data-notitles] .toc .t{display:none}
+html[data-notitles] .toc .n{grid-row:auto}
+html[data-notitles] .toc .m{font-size:14.5px;align-self:center}
 /* the read-through view (app/nav.js, 2026-10-31): html[data-read], the whole surah as one text under its title; the index,
    the segment rows, titles, clues and keys are not shown; the page marks stay, small, in the line */
 .segs{display:contents}

@@ -30,7 +30,7 @@
       simTipB: 'ما الذي يسبق هذه الكلمات في هذه الآية؟', simQB: 'الآية {0}: … «{1}»', whichB: 'ما قبلها:', soa: '﴿أول الآية﴾',
       noSim: 'لا متشابهات في هذه السورة.', simHome: 'افتح سورة لتتدرب على متشابهاتها.', simNext: 'آية أخرى', where: 'سورة {0} {1}', hereS: 'هذه السورة',
       eoa: '﴿نهاية الآية﴾', twin: 'الشبيهة: {0}', score: '{0} صحيحة من {1}',
-      cardTip: 'آخر كلمات مقطع، وأول كلمات المقطع التالي: اذكرها ثم اقلب البطاقة.', front: 'آخر المقطع {0} — {1}', back: 'أول المقطع {0}', flip: 'اقلب', knew: 'عرفتها', missed: 'لم أعرفها',
+      cardTip: 'آخر كلمات مقطع، وأول كلمات المقطع التالي: اذكرها ثم اقلب البطاقة.', front: 'آخر المقطع {0} — {1}', frontN: 'آخر المقطع {0}', back: 'أول المقطع {0}', flip: 'اقلب', knew: 'عرفتها', missed: 'لم أعرفها',
       reverse: 'بالعكس: أعطني أول المقطع التالي وأذكر آخر المقطع', shuffle: 'خلط', done: 'انتهت البطاقات: {0} معروفة من {1}', noDeck: 'لا بطاقات: تعذّر تحميل deck.json.',
       left: 'بقي {0}', nextS: 'السورة التالية', ofS: 'سورة {0} — المقطع {1} من {2}'
     },
@@ -43,7 +43,7 @@
       simTipB: 'What comes before these words in this ayah?', simQB: 'Ayah {0}: … “{1}”', whichB: 'What comes before:', soa: '(start of the ayah)',
       noSim: 'No look-alikes in this surah.', simHome: 'Open a surah to drill its look-alikes.', simNext: 'Another ayah', where: 'Surah {0} {1}', hereS: 'this surah',
       eoa: '(end of the ayah)', twin: 'The look-alike: {0}', score: '{0} right of {1}',
-      cardTip: 'The last words of a segment, and the first words of the next: say them, then flip the card.', front: 'End of segment {0} — {1}', back: 'Start of segment {0}', flip: 'Flip', knew: 'Knew it', missed: "Didn't",
+      cardTip: 'The last words of a segment, and the first words of the next: say them, then flip the card.', front: 'End of segment {0} — {1}', frontN: 'End of segment {0}', back: 'Start of segment {0}', flip: 'Flip', knew: 'Knew it', missed: "Didn't",
       reverse: 'Reverse: give me the start of the next segment and I recall the end of the segment', shuffle: 'Shuffle', done: 'No cards left: {0} known of {1}', noDeck: "No cards: deck.json couldn't be loaded.",
       left: '{0} left', nextS: 'Next surah', ofS: 'Surah {0} — segment {1} of {2}'
     },
@@ -56,7 +56,7 @@
       simTipB: '¿Qué precede a estas palabras en esta aleya?', simQB: 'Aleya {0}: … «{1}»', whichB: 'Lo que precede:', soa: '(comienzo de la aleya)',
       noSim: 'No hay aleyas parecidas en esta sura.', simHome: 'Abra una sura para ejercitar sus aleyas parecidas.', simNext: 'Otra aleya', where: 'Sura {0} {1}', hereS: 'esta sura',
       eoa: '(fin de la aleya)', twin: 'La parecida: {0}', score: '{0} bien de {1}',
-      cardTip: 'Las últimas palabras de un segmento y las primeras del siguiente: dígalas y luego gire la tarjeta.', front: 'Final del segmento {0} — {1}', back: 'Comienzo del segmento {0}', flip: 'Girar', knew: 'La sabía', missed: 'No la sabía',
+      cardTip: 'Las últimas palabras de un segmento y las primeras del siguiente: dígalas y luego gire la tarjeta.', front: 'Final del segmento {0} — {1}', frontN: 'Final del segmento {0}', back: 'Comienzo del segmento {0}', flip: 'Girar', knew: 'La sabía', missed: 'No la sabía',
       reverse: 'Al revés: deme el comienzo del siguiente segmento y recuerdo el final del segmento', shuffle: 'Barajar', done: 'No quedan tarjetas: {0} sabidas de {1}', noDeck: 'Sin tarjetas: no se pudo cargar deck.json.',
       left: 'Quedan {0}', nextS: 'Sura siguiente', ofS: 'Sura {0} — segmento {1} de {2}'
     }
@@ -100,7 +100,13 @@
     return HS ? HS.text(HS.gidx(s, a)) : '';
   }
   function nAyat(s) { return HS ? HS.n[s - 1] : (D && s === S ? D.n : 0); }
-  function sName(s) { return HS ? HS.names[s - 1] : (D && D.nv && D.nv.f[String(s)] ? D.nv.f[String(s)][0] : ''); }
+  function sName(s) {
+    if (HS) return HS.names[s - 1];
+    if (D && D.nv && D.nv.f[String(s)]) return D.nv.f[String(s)][0];
+    // this surah (2026-11-21: its seam cards named no surah before the search index had loaded)
+    var h = D && +D.s === +s ? document.querySelector('.idx h1') : null;
+    return h ? h.textContent.replace(/^\s*سورة\s+/, '').trim() : '';
+  }
   function fileOf(s) { return HS ? root() + 'packages/' + ('00' + s).slice(-3) + '-package/' + encodeURIComponent(HS.files[s - 1]) : null; }
 
   // ---------------------------------------------------------------- the panel
@@ -348,8 +354,10 @@
       return;
     }
     var c = cards[ci], nextId = c.id < c.n ? c.id + 1 : 1, nextLabel = c.id < c.n ? fmt(T('back'), nm(nextId)) : T('nextS');
-    var frontT = reverse ? nextLabel : fmt(T('front'), nm(c.id), c.title), frontW = reverse ? c.clue : c.last;
-    var backT = reverse ? fmt(T('front'), nm(c.id), c.title) : nextLabel, backW = reverse ? c.last : c.clue;
+    // the segment's title only when the titles are switched on (app/view.js, 2026-11-21)
+    var endL = document.documentElement.hasAttribute('data-notitles') ? fmt(T('frontN'), nm(c.id)) : fmt(T('front'), nm(c.id), c.title);
+    var frontT = reverse ? nextLabel : endL, frontW = reverse ? c.clue : c.last;
+    var backT = reverse ? endL : nextLabel, backW = reverse ? c.last : c.clue;
     card.innerHTML = '<p class="ad-ref">' + esc(fmt(T('ofS'), iso(sName(c.s) || ''), nm(c.id), nm(c.n))) + ' · ' + esc(fmt(T('left'), nm(cards.length - ci))) + '</p>' +
       '<p class="ad-ref">' + esc(frontT) + '</p><p class="ad-q quran">' + esc(frontW) + '</p>' +
       (flipped ? '<p class="ad-ref">' + esc(backT) + '</p><p class="ad-a quran">' + esc(backW) + '</p>' : '');
