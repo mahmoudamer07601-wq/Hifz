@@ -144,7 +144,12 @@
     var ps = [pageOf(g[1])];
     D.p.forEach(function (e) { if (e[1] > g[1] && e[1] <= g[2]) ps.push(e); });
     var b = document.createElement('span'); b.className = 'pgs'; b.setAttribute('data-pages', JSON.stringify(ps.map(function (e) { return [e[0], e[2]]; })));
-    hd.appendChild(b); heads.push(b);
+    // since 2026-11-25 (at the learner's request: the page once, the header on one line): before the Mushaf link, without
+    // its label "In the Mushaf:" (kept for screen readers), and the page after the ayat (span.hd-pg) hidden
+    var mu = hd.querySelector('.ref-mushaf');
+    if (mu) hd.insertBefore(b, mu); else hd.appendChild(b);
+    if (hd.parentNode) hd.parentNode.classList.add('has-pgs');
+    heads.push(b);
   });
   // ---- the lines of the Mushaf (2026-10-31) ----
   // D.ln: [[page, line, a0, w0, a1, w1], ...] in order; an item is a word (1..n) or the ayah's marker (n + 1)
@@ -248,9 +253,11 @@
       m.setAttribute('data-label', l); m.setAttribute('aria-label', l);
     });
     heads.forEach(function (b) {
-      var ps = JSON.parse(b.getAttribute('data-pages'));
-      b.textContent = fmt(t.hd, ps.map(function (e) { return pgLabel(e[0], e[1]) + lineSpan(b, e[0]); }).join(lang() === 'ar' ? '، ' : ', '));
+      var ps = JSON.parse(b.getAttribute('data-pages')),
+        txt = ps.map(function (e) { return pgLabel(e[0], e[1]) + lineSpan(b, e[0]); }).join(lang() === 'ar' ? '، ' : ', ');
+      b.textContent = txt; b.title = fmt(t.hd, txt); b.setAttribute('aria-label', b.title);
     });
+    fitHeadsLater();
     [].forEach.call(document.querySelectorAll('.thumb'), function (x) {
       x.setAttribute('aria-label', pgLabel(+x.getAttribute('data-p'), x.getAttribute('data-side'))); x.title = x.getAttribute('aria-label');
     });
@@ -264,6 +271,36 @@
     var t = TX[lang()];
     return ' · ' + fmt(lo === hi ? t.line : t.lines, nm(lo), nm(hi));
   }
+  // ---- the segment's header on one line (2026-11-25, at the learner's request "merge both lines into one to save more
+  // reading space"): where the line is longer than the width, its letters shrink a little, down to HF_MIN px; when even
+  // that is too long (a phone), it keeps its size and wraps.  Measured with every header unwrapped at once (.hd-measure).
+  var HF_MIN = 11.5, hfT = 0;
+  function fitHeads() {
+    var hs = [].slice.call(document.querySelectorAll('section.seg>header'));
+    if (!hs.length) return;
+    hs.forEach(function (h) { h.style.removeProperty('font-size'); h.classList.add('hd-measure'); });
+    var m = hs.map(function (h) { return [h.scrollWidth, h.clientWidth, parseFloat(getComputedStyle(h).fontSize) || 13]; });
+    var set = [];
+    hs.forEach(function (h, i) {
+      var need = m[i][0], avail = m[i][1];
+      if (!avail || need <= avail + 1) return;                          // hidden (the read-through view) or one line already
+      var f = Math.floor(m[i][2] * avail / need * 0.985 * 4) / 4;      // in quarter pixels
+      if (f >= HF_MIN) { h.style.fontSize = f + 'px'; set.push(h); }
+    });
+    set.forEach(function (h) {                                          // a check: a little smaller where it is still long
+      if (h.scrollWidth > h.clientWidth + 1) {
+        var f = parseFloat(h.style.fontSize) - 0.5;
+        if (f >= HF_MIN) h.style.fontSize = f + 'px'; else h.style.removeProperty('font-size');
+      }
+    });
+    hs.forEach(function (h) { h.classList.remove('hd-measure'); });
+  }
+  function fitHeadsLater() { clearTimeout(hfT); hfT = setTimeout(fitHeads, 80); }
+  window.addEventListener('resize', fitHeadsLater);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHeadsLater);
+  window.addEventListener('load', fitHeadsLater);
+  if (window.MutationObserver) new MutationObserver(fitHeadsLater).observe(de, { attributes: true, attributeFilter: ['data-read', 'data-lines', 'data-ui'] });
+
   relabel();
   if (window.hifzUI) window.hifzUI.on(relabel);
 

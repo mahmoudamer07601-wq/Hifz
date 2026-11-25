@@ -120,12 +120,16 @@ section.seg>.player nav{gap:.75rem;font-size:.95em}
  section.seg>.player .play{padding:.34em .75em}section.seg>.player :is(.tst,.fcs){padding:.34em .7em}section.seg>.player nav{gap:.6rem}}
 /* the segment's header on one line (2026-11-25, at the learner's request): the surah, the segment and its unit | the ayat,
    the page and the Mushaf link | where it sits in the Mushaf: page, side, lines (app/words.js); no PDF page in the app */
-section.seg>header{display:block;padding-bottom:.35rem;font-size:13.5px;line-height:1.75}
+section.seg>header{display:block;padding-bottom:.35rem;font-size:13px;line-height:1.75}
 section.seg>header .surah{font-size:1.1em;font-weight:600}
 section.seg>header>:is(.hd-seg,.hd-ay){display:inline}
-section.seg>header>.hd-ay::before,section.seg>header>.hd-ay>.pgs::before{content:"";display:inline-block;width:1px;height:1em;margin:0 .6em;
+section.seg>header>.hd-ay::before,section.seg>header>.hd-ay>.pgs::before{content:"";display:inline-block;width:1px;height:1em;margin:0 .55em;
  vertical-align:-.15em;background:var(--rule,#c9b27a)}
-section.seg>header .ref-mushaf{font-size:.92em;line-height:1.45;margin-inline-start:.45em}
+section.seg>header .ref-mushaf{font-size:.92em;line-height:1.45;margin-inline-start:.5em}
+/* the page once (2026-11-25, at the learner's request): app/words.js puts page, side and lines before the Mushaf link and
+   hides the page after the ayat; it measures each header unwrapped (.hd-measure) and shrinks a long one onto one line */
+section.seg>header.has-pgs .hd-pg{display:none}
+section.seg>header.hd-measure{white-space:nowrap}
 @media (max-width:700px){section.seg>header{font-size:12.5px;line-height:1.7}section.seg>header .surah{font-size:1.08em}}
 .player .play .lb-pause{display:none}
 .player.playing .play .lb-play{display:none}
