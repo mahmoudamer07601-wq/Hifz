@@ -99,7 +99,8 @@
     a.href = data.link; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Tanzil.net';
     src.appendChild(document.createTextNode(parts[0])); src.appendChild(a); src.appendChild(document.createTextNode(parts[1] || ''));
   }
-  function barH() {                 // the practice bar at the bottom (fixed: offsetParent is always null)
+  function barH() {                 // the practice bar at the bottom (fixed: offsetParent is always null); none in the toolbar's row
+    if (window.HifzBar && window.HifzBar.bottom) return window.HifzBar.bottom();
     var b = document.querySelector('.pbar');
     return b && getComputedStyle(b).display !== 'none' ? b.getBoundingClientRect().height : 0;
   }

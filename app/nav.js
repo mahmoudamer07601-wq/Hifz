@@ -91,6 +91,7 @@
   // what the bars cover of the screen: nothing of a bar app/bar.js has slid away while the reader scrolls (2026-11-25)
   function toolsH() { var t = document.querySelector('.tools'); return t ? Math.max(0, t.getBoundingClientRect().bottom) : 0; }
   function barH() {
+    if (window.HifzBar && window.HifzBar.bottom) return window.HifzBar.bottom();     // none while it stands in the toolbar
     var b = document.querySelector('.pbar');
     return b && getComputedStyle(b).display !== 'none' ? Math.max(0, window.innerHeight - b.getBoundingClientRect().top) : 0;
   }

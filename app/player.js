@@ -543,7 +543,10 @@
     '<div class="pb-msg" hidden></div></div>';
   document.body.appendChild(bar);
   de.classList.add('has-pbar');
-  function barH() { return Math.max(0, window.innerHeight - bar.getBoundingClientRect().top); }   // its visible part (app/bar.js)
+  function barH() {   // what it covers at the bottom of the screen: its visible part (app/bar.js), none in the toolbar's row
+    if (de.classList.contains('pb-top')) return 0;
+    return Math.max(0, window.innerHeight - bar.getBoundingClientRect().top);
+  }
   function msg(t, bad) { var m = bar.querySelector('.pb-msg'); m.textContent = t || ''; m.hidden = !t; m.classList.toggle('bad', !!bad); }
   function paint() {
     var playing = run && !run.idle && !run.paused;

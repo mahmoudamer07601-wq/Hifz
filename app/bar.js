@@ -11,7 +11,8 @@
      recitation, nor an arrow's jump), the toolbar slides up out of sight and the practice bar of app/player.js down
      (html.bars-off), except while it plays (html.is-playing); a scroll up, the top or the end of the page, or the
      keyboard's focus on a bar brings them back.  The display panel switches this off (app/view.js, "autohide").
-   window.HifzBar = {show(), hidden()} for the other scripts.
+   - On a wide screen the practice bar stands in the middle of the toolbar's row (html.pb-top), where the row has room.
+   window.HifzBar = {show(), hidden(), bottom()} for the other scripts.
    Interface text in three languages, following the switch of tools/ui.py (window.hifzUI). */
 (function () {
   'use strict';
@@ -110,17 +111,65 @@
     if (y <= Math.max(12, tb.offsetHeight) || y >= end - 48) { show(); return; }
     if (!mine) return;
     if (anyOpen()) closeAll();
-    if (!enabled() || de.classList.contains('tb-finding') || tb.contains(document.activeElement)) { show(); return; }
+    if (!enabled() || de.classList.contains('tb-finding') || typing()) { show(); return; }
     if (dy > 0) { acc = acc > 0 ? acc + dy : dy; if (acc > 28) setOff(true); }
     else if (dy < 0) { acc = acc < 0 ? acc + dy : dy; if (acc < -14) setOff(false); }
   }, { passive: true });
-  tb.addEventListener('focusin', show);
+  // the bar stays while one types in it, or moves through it with the keyboard; a click leaves its button focused, which
+  // does not hold the bar (else, with the practice bar in the row, it would never go after ▶)
+  function typing() {
+    var a = document.activeElement;
+    if (!a || !tb.contains(a)) return false;
+    if (/INPUT|TEXTAREA|SELECT/.test(a.tagName)) return true;
+    try { return a.matches(':focus-visible'); } catch (e) { return false; }
+  }
+  tb.addEventListener('focusin', function () { if (typing()) show(); });
   // a touch or a click on the practice bar keeps both bars in view (a pause does not send it away under the finger)
   function onPbar(e) { var p = document.querySelector('.pbar'); if (p && p.contains(e.target)) show(); }
   document.addEventListener('focusin', onPbar);
   document.addEventListener('pointerdown', onPbar, true);
   document.addEventListener('hifz-view', function () { if (!enabled()) show(); });
 
-  if (window.hifzUI) window.hifzUI.on(label);
-  window.HifzBar = { show: show, hidden: function () { return de.classList.contains('bars-off'); }, finding: finding, close: closeAll };
+  // ---------------------------------------------------------------- the practice bar in the row, on a wide screen
+  // 2026-11-25, at the learner's request: "can you merge the audio toolbar with the top toolbar? I see a lot of space in
+  // the middle of the top one and a lot of side space in the lower one".  Where the row has room for it (PB_EM of the
+  // row's letter size besides everything else in it), the practice bar of app/player.js moves into the middle of the row
+  // (html.pb-top, app/book.css); else, a phone or a narrow window, it stays at the bottom of the screen.  Checked when the
+  // page has loaded, when the window, the language, the button size or the reference panel change the room.
+  var PB_EM = 28, pbT = 0, rpWas = null;
+  function placePbar() {
+    var pb = document.querySelector('.pbar'), slot = tb.querySelector('.tb-sp');
+    if (!pb || !slot) return;
+    var cs = getComputedStyle(tb), fs = parseFloat(cs.fontSize) || 13, gap = parseFloat(cs.columnGap) || 0;
+    var used = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0), n = 0;
+    [].forEach.call(tb.children, function (c) {
+      if (c === slot) return;
+      var st = getComputedStyle(c);
+      if (st.display === 'none' || st.position === 'absolute' || st.position === 'fixed') return;
+      used += c.getBoundingClientRect().width; n++;
+    });
+    var top = pb.parentNode === slot, room = tb.clientWidth - used - gap * n;
+    var fit = room >= PB_EM * fs * (top ? 0.96 : 1);          // a little slack once it is there, so that it does not flap
+    if (fit && !top) { slot.appendChild(pb); de.classList.add('pb-top'); }
+    else if (!fit && top) { document.body.appendChild(pb); de.classList.remove('pb-top'); }
+  }
+  function placeLater() { clearTimeout(pbT); pbT = setTimeout(placePbar, 60); }
+  document.addEventListener('DOMContentLoaded', placePbar);          // after app/player.js has made its bar
+  window.addEventListener('load', placeLater);
+  window.addEventListener('resize', placeLater);
+  document.addEventListener('hifz-view', placeLater);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeLater);
+  if (window.MutationObserver) new MutationObserver(function () {   // the reference panel of a wide screen narrows the page
+    var rp = de.classList.contains('rp-open');
+    if (rp !== rpWas) { rpWas = rp; placeLater(); }
+  }).observe(de, { attributes: true, attributeFilter: ['class'] });
+
+  if (window.hifzUI) window.hifzUI.on(function () { label(); placeLater(); });
+  window.HifzBar = { show: show, hidden: function () { return de.classList.contains('bars-off'); }, finding: finding, close: closeAll,
+    // the height the practice bar covers at the bottom of the screen: none while it stands in the toolbar's row
+    bottom: function () {
+      var b = document.querySelector('.pbar');
+      if (!b || de.classList.contains('pb-top') || getComputedStyle(b).display === 'none') return 0;
+      return Math.max(0, window.innerHeight - b.getBoundingClientRect().top);
+    } };
 })();

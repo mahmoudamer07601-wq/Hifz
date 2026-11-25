@@ -150,7 +150,7 @@ html.has-pbar.rp-open body{padding-bottom:var(--rph,50vh)}
  box-shadow:0 -4px 16px rgba(0,0,0,.12);transition:transform .22s ease}
 html.bars-off:not(.is-playing) .pbar{transform:translateY(calc(100% + 18px))}
 @media (prefers-reduced-motion:reduce){.pbar{transition:none}}
-html.rp-open .pbar{display:none}
+html.rp-open:not(.pb-top) .pbar{display:none}
 .pb-in{max-width:46rem;margin:0 auto}
 .pb-row{display:flex;align-items:center;gap:.4em}
 .pb-b{flex:none;min-width:2.6em;height:2.6em;padding:0 .5em;border:1px solid var(--ctl-line);border-radius:12px;background:var(--ctl);color:var(--ctl-ink);
@@ -172,6 +172,29 @@ html.rp-open .pbar{display:none}
 .pb-msg[hidden]{display:none}
 @media (max-width:420px){.pb-b{min-width:2.4em;padding:0 .35em}.pb-row{gap:.25em}.pbar{font-size:calc(15px * min(var(--ui,1),1.25))}}
 @media (max-width:370px){.pbar{font-size:calc(14px * min(var(--ui,1),1.15))}}
+/* on a wide screen the practice bar stands in the middle of the toolbar's row (2026-11-25, at the learner's request: "merge
+   the audio toolbar with the top toolbar"): app/bar.js moves it there where the row has room (html.pb-top). Its buttons take
+   the row's size; the progress is the line along the toolbar's lower edge; a message hangs under the toolbar; while it
+   plays the toolbar stays in view when the reader scrolls down */
+html .tools.ui .tb-sp{display:flex;align-items:center;justify-content:center}
+html.pb-top .tools.ui .pbar{position:static;flex:0 1 44em;min-width:0;margin:0 .3em;padding:0;background:none;border:0;box-shadow:none;transform:none;
+ transition:none;z-index:auto;color:inherit;font-size:1em}
+html.pb-top .tools.ui .pbar .pb-in{max-width:none;margin:0}
+html.pb-top .tools.ui .pbar .pb-row{gap:.35em}
+html.pb-top .tools.ui .pbar :is(.pb-b,.pb-range){background:var(--ctl);color:var(--ctl-ink);border:1px solid var(--ctl-line)}
+html.pb-top .tools.ui .pbar .pb-b{min-width:2.75em;height:2.75em;padding:0 .55em;border-radius:999px;font-size:1em}
+html.pb-top .tools.ui .pbar .pb-play{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
+@media (hover:hover){html.pb-top .tools.ui .pbar :is(.pb-b,.pb-range):hover{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
+ html.pb-top .tools.ui .pbar .pb-range:hover .pb-stat{color:inherit}}
+html.pb-top .tools.ui .pbar .pb-play{min-width:3.1em;font-size:1.1em}
+html.pb-top .tools.ui .pbar .pb-range{height:2.75em;padding:0 1em;border-radius:999px}
+html.pb-top .tools.ui .pbar .pb-prog{top:calc(100% - 2px);height:10px}
+html.pb-top .tools.ui .pbar .pb-prog::before,html.pb-top .tools.ui .pbar .pb-fill{top:0}
+html.pb-top .tools.ui .pbar .pb-msg{position:absolute;top:calc(100% + .5em);left:50%;transform:translateX(-50%);width:max-content;max-width:90%;
+ margin:0;padding:.4em .9em;background:var(--sheet);border:1px solid var(--bar-line);border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+html.pb-top.has-pbar body{padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px))}
+html.bars-off.pb-top.is-playing .tools.ui{transform:none}
+html.bars-off.pb-top.is-playing{--tools-v:var(--tools-h,3rem)}
 /* the practice panel */
 .psheet .pkinds button{flex:1 1 40%;font-size:.9em}
 .pcust{display:flex;gap:.6rem;margin:.6rem 0 0}
