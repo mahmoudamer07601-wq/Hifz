@@ -127,7 +127,7 @@
     return best;
   }
   function wordTime(a, i) { var w = WT[a - 1] || []; for (var j = 0; j < w.length; j++) if (w[j][0] === i) return w[j][1]; return AT[a - 1][0]; }
-  function toolsH() { var t = document.querySelector('.tools'); return t ? t.getBoundingClientRect().height : 0; }
+  function toolsH() { var t = document.querySelector('.tools'); return t ? Math.max(0, t.getBoundingClientRect().bottom) : 0; }   // its visible part (app/bar.js)
   function inView() {           // the first ayah of the first segment in view
     var top = toolsH() + 30, secs = document.querySelectorAll('section.seg');
     for (var i = 0; i < secs.length; i++) {
@@ -536,14 +536,14 @@
     '<button type="button" class="pb-b pb-prev" data-a="prev">⏮</button>' +
     '<button type="button" class="pb-b pb-play" data-a="play"><span class="ic">▶</span></button>' +
     '<button type="button" class="pb-b pb-next" data-a="next">⏭</button>' +
-    '<button type="button" class="pb-range" data-a="sheet"></button>' +
+    '<button type="button" class="pb-range" data-a="sheet"><span class="pb-rl"></span><span class="pb-stat" aria-live="polite"></span></button>' +
     '<button type="button" class="pb-b pb-rep" data-a="rep"></button>' +
     '<button type="button" class="pb-b pb-set" data-a="sheet">⚙</button></div>' +
     '<div class="pb-prog" role="presentation"><span class="pb-fill"></span></div>' +
-    '<div class="pb-stat" aria-live="polite"></div><div class="pb-msg" hidden></div></div>';
+    '<div class="pb-msg" hidden></div></div>';
   document.body.appendChild(bar);
   de.classList.add('has-pbar');
-  function barH() { return bar.getBoundingClientRect().height; }
+  function barH() { return Math.max(0, window.innerHeight - bar.getBoundingClientRect().top); }   // its visible part (app/bar.js)
   function msg(t, bad) { var m = bar.querySelector('.pb-msg'); m.textContent = t || ''; m.hidden = !t; m.classList.toggle('bad', !!bad); }
   function paint() {
     var playing = run && !run.idle && !run.paused;
@@ -555,7 +555,8 @@
     var st = bar.querySelector('.pb-set'); st.setAttribute('aria-label', T('settings')); st.title = T('settings');
     var rp = bar.querySelector('.pb-rep');
     rp.textContent = '×' + (P.rep === 0 ? '∞' : nm(P.rep)); rp.setAttribute('aria-label', T('rep') + ': ' + (P.rep === 0 ? '∞' : nm(P.rep))); rp.title = T('rep');
-    bar.querySelector('.pb-range').textContent = rangeLabel(run && run.r || R || rangeOf('seg', ctxAyah()));
+    bar.querySelector('.pb-rl').textContent = rangeLabel(run && run.r || R || rangeOf('seg', ctxAyah()));
+    de.classList.toggle('is-playing', !!playing);       // app/bar.js keeps the bar in view while it plays (2026-11-25)
     bar.setAttribute('aria-label', T('player'));
     bar.setAttribute('dir', lang() === 'ar' ? 'rtl' : 'ltr');
     if (!playing) [].forEach.call(document.querySelectorAll('.player.playing'), function (p) { p.classList.remove('playing'); });
@@ -875,5 +876,5 @@
     ayahAt: ayahAt, wordAt: wordAt, now: now, focus: openFocus, label: rangeLabel, current: function () { return run; }
   };
   paint();
-  window.addEventListener('scroll', function () { if (!run || run.idle) { var l = bar.querySelector('.pb-range'), t = rangeLabel(R || rangeOf('seg', ctxAyah())); if (l.textContent !== t) l.textContent = t; } }, { passive: true });
+  window.addEventListener('scroll', function () { if (!run || run.idle) { var l = bar.querySelector('.pb-rl'), t = rangeLabel(R || rangeOf('seg', ctxAyah())); if (l.textContent !== t) l.textContent = t; } }, { passive: true });
 })();

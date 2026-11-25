@@ -372,13 +372,17 @@
 
   // ---------------------------------------------------------------- the buttons
   function button() {
-    var nav = document.querySelector('.tools .hnav'), home = document.querySelector('.home .hero .actions');
+    // a surah file: in the ☰ menu of the toolbar, after the read-through switch (2026-11-25; in the row before); the home page: with its buttons
+    var nav = document.querySelector('.tools .hnav'), menu = document.querySelector('.tools .tb-menu'), home = document.querySelector('.home .hero .actions');
     var b = el('button', nav ? 'hn-dr' : 'btn ad-open'); b.type = 'button';
     b.innerHTML = '<span class="hn-ri" aria-hidden="true">🎯</span><span class="hn-rt"></span>';
     function lab() { b.querySelector('.hn-rt').textContent = T('title'); b.title = T('title'); b.setAttribute('aria-label', T('title')); }
     lab();
     b.addEventListener('click', function () { open(); });
-    if (nav) { var rd = nav.querySelector('.hn-rd'); nav.insertBefore(b, rd ? rd.nextSibling : nav.firstChild); }
+    if (nav) {
+      var box = menu || nav, rd = box.querySelector('.hn-rd'), mu = box.querySelector('[data-mushaf]');
+      box.insertBefore(b, rd ? rd.nextSibling : mu || box.firstChild);
+    }
     else if (home) home.appendChild(b);
     if (window.hifzUI) window.hifzUI.on(function () { lab(); if (sheet && !sheet.hidden) show(tab); });
   }

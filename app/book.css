@@ -3,17 +3,37 @@
    worksheets (app/test.js, app/recite.js), focus view.  Colours come from app/view.css. */
 .tools .home{display:inline-flex;align-items:center;justify-content:center;min-width:2.2rem;padding:.15rem .55rem;border:1px solid #b9b2a1;border-radius:4px;background:#fff;color:#3d3a33;text-decoration:none;font-size:16px;line-height:1.3}
 .tools .home:hover{background:#3d3a33;color:#fff;border-color:#3d3a33}
-/* the navigation arrows at the end of the toolbar (app/nav.js, 2026-10-30): "→ label ←" for the surah, the segment
-   and the juzʾ (the groups are styled in app/view.css, shared with the Mushaf), after the read-through switch 📖; a row
-   of their own on a phone */
-.tools .hnav{order:1;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4em .6em}
-@media (max-width:700px){.tools .hnav{flex-basis:100%;gap:.35em .22em}}
-html .tools button.hn-rd,html .tools button.hn-dr{display:inline-flex;align-items:center;gap:.3em;min-height:2.75em;padding:0 .75em;border:1px solid var(--ctl-line);
- border-radius:999px;background:var(--ctl);color:var(--ctl-ink);font-weight:600;line-height:1.1;white-space:nowrap}
+/* the navigation arrows in the toolbar (app/nav.js, 2026-10-30): "→ label ←" for the surah, the segment and the juzʾ
+   (the groups are styled in app/view.css, shared with the Mushaf).  One row since 2026-11-25 (tools/ui.py app_bar): on a
+   wide screen the three groups; on a phone the segment group and ▾ (.hn-more), which opens the other two under the bar
+   (.hn-pop, app/bar.js).  The read-through switch 📖 and the drills 🎯 are in the ☰ menu. */
+.tools .hnav{display:flex;flex-wrap:nowrap;align-items:center;gap:.45em;min-width:0}
+.tools .hnav .hn-g[data-g=s]{order:1}.tools .hnav .hn-g[data-g=g]{order:2}.tools .hnav .hn-g[data-g=j]{order:3}.tools .hnav .hn-more{order:4}
+.tools .hnav .hn-g{flex:none}
+html .tools .hn-more{display:none;flex-direction:column;align-items:center;justify-content:center;flex:0 1 auto;min-width:0;box-sizing:border-box;min-height:2.75em;
+ margin:0;padding:.1em .75em;border:1px solid var(--ctl-line);border-radius:999px;background:var(--ctl);color:var(--ctl-ink);font:inherit;
+ line-height:1.12;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html .tools .hn-more .hn-c{max-width:100%;overflow:hidden;text-overflow:ellipsis;font-size:.84em;font-weight:600;color:var(--muted,#5a5548)}
+html .tools .hn-more .hn-v{font-size:1.1em;font-weight:700;font-variant-numeric:tabular-nums}
+html .tools .hn-more .hn-dn{display:inline-block;margin-inline-start:.3em;font-size:.75em;transition:transform .15s}
+html .tools .hn-more[aria-expanded=true]{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
+html .tools .hn-more[aria-expanded=true] .hn-c{color:inherit}
+html .tools .hn-more[aria-expanded=true] .hn-dn{transform:rotate(180deg)}
+html[data-ui=en] .tools .hn-more,html[data-ui=es] .tools .hn-more{direction:ltr}
+@media (min-width:761px){html .tools.ui .hnav .hn-pop,html .tools.ui .hnav .hn-pop[hidden]{display:contents}}
+@media (max-width:760px){
+ html .tools .hn-more{display:inline-flex}
+ html .tools .hnav .hn-g{min-height:2.6em}
+ html .tools .hnav .hn-g .hn-b{min-width:1.5em;padding:0 .05em}
+ html .tools .hnav .hn-g .hn-l{min-width:2.9em;padding:.1em .15em}
+ html .tools .hn-more{min-height:2.6em;padding:.1em .6em}
+ html .tools.ui .hnav .hn-pop{inset-inline:.45em;display:flex;flex-wrap:wrap;justify-content:center;gap:.7em;padding:.7em .6em;font-size:calc(14px * min(var(--ui,1),1.3))}
+ html .tools.ui .hnav .hn-pop[hidden]{display:none}
+ html .tools .hn-pop .hn-g{min-height:2.9em}
+ html .tools .hn-pop .hn-g .hn-b{min-width:2.1em}
+ html .tools .hn-pop .hn-g .hn-l{min-width:3.6em;padding:.12em .35em}
+}
 .hn-ri{font-size:1.25em;line-height:1}
-html[data-read] .tools button.hn-rd{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
-@media (max-width:700px){html .tools button.hn-rd,html .tools button.hn-dr{padding:0 .22em;min-height:2.6em}.hn-rt{display:none}
- .tools .hnav .hn-g{min-height:2.6em}.tools .hnav .hn-g .hn-b{min-width:1.45em;padding:0 .05em}.tools .hnav .hn-g .hn-l{min-width:2.9em;padding:.1em .15em}}
 .quran .wd.hn-hit{animation:hn-flash 2.6s ease-out}
 @keyframes hn-flash{0%,45%{background:var(--hl-ayah)}100%{background:transparent}}
 /* the Mushaf's lines (app/words.js, 2026-10-31): html[data-lines] shows each line as it sits on the page: one block per line,
@@ -29,7 +49,7 @@ html[data-lines] .page{max-width:28cm;padding-inline:1.2cm 2.6cm}
 html[data-lines] .ln::before{content:attr(data-l);position:absolute;inset-inline-end:100%;top:0;width:2.2em;padding-inline-end:.35em;box-sizing:border-box;
  text-align:center;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.36em;line-height:2.4;color:var(--muted,#5a5548);opacity:.75;pointer-events:none}
 html[data-lines] .ln[style*="--before"]::before{content:none}
-html[data-lines] .ln .pgm{display:block;margin:.2em 0 0;font-size:calc(12px * var(--ui,1));text-align:center;text-align-last:center}
+html[data-lines] .ln .pgm{display:block;margin:.15em 0 0;font-size:calc(10.5px * var(--ui,1));text-align:center;text-align-last:center}
 html[data-lines] .ln.wrapped{text-align-last:auto}
 html[data-lines] section.seg .quran{word-spacing:0}
 html[data-rhyme] .quran .wd.rw{background:var(--hl-ayah);box-shadow:0 .14em 0 0 var(--accent);border-radius:.15em}
@@ -57,25 +77,28 @@ html[data-notitles] .toc .m{font-size:14.5px;align-self:center}
 /* the read-through view (app/nav.js, 2026-10-31): html[data-read], the whole surah as one text under its title; the index,
    the segment rows, titles, clues and keys are not shown; the page marks stay, small, in the line */
 .segs{display:contents}
-.rd-h{display:none}
+.rd-head,.rd-h{display:none}
 html[data-read] .idx{display:none}
 html[data-read] .segs{display:block;max-width:19cm;margin:1.5cm auto;padding:1.2cm 1.8cm 1.6cm;background:var(--paper);
  box-shadow:0 1px 6px rgba(0,0,0,.12);text-align:justify;text-align-last:right}
-html[data-read] .segs .rd-h{display:block;margin:0 0 .7rem;text-align:center;text-align-last:center;font-weight:400;
- font-size:calc(31px * min(var(--qscale,1),1.6));line-height:1.6;color:var(--ink)}
+/* the title and the whole-surah test on one row (2026-11-25, at the learner's request) */
+html[data-read] .segs .rd-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.3rem 1.1rem;margin:0 0 .8rem;
+ text-align:center;text-align-last:center}
+html[data-read] .segs .rd-h{display:block;margin:0;text-align:center;text-align-last:center;font-weight:400;
+ font-size:calc(31px * min(var(--qscale,1),1.6));line-height:1.5;color:var(--ink)}
 html[data-read] .segs>section.seg{display:inline;margin:0;padding:0;min-height:0;border:0;box-shadow:none;background:none}
 html[data-read] .segs>section.seg>:not(.quran):not(.bism){display:none}
 html[data-read] .segs .quran{display:inline}
 html[data-read] .segs .bism{display:block;text-align:center;text-align-last:center;margin:0 0 .3rem}
-html[data-read] .segs .quran .pgm{display:inline-block;margin:0 .3em;vertical-align:.3em;font-size:calc(11px * var(--ui,1));line-height:1.3}
 html[data-read][data-big] .segs{text-align:right;text-align-last:auto}
-/* the whole-surah test (app/test.js, 2026-11-15): its button under the title; its bar stays at the top while the text scrolls */
+/* the whole-surah test (app/test.js, 2026-11-15): its button beside the title (under it until 2026-11-25); its bar stays at
+   the top while the text scrolls, under the toolbar or, while app/bar.js has slid the toolbar away, at the top of the screen */
 .rd-test{display:none}
-html[data-read] .segs .rd-test{display:flex;justify-content:center;margin:0 0 .9rem}
+html[data-read] .segs .rd-test{display:flex;justify-content:center;margin:0}
 .rd-tst{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:calc(14px * var(--ui,1))}
 .rd-tst[aria-pressed=true]{background:var(--ctl-on,#3d3a33);color:var(--ctl-on-ink,#fff);border-color:var(--ctl-on,#3d3a33)}
-html[data-read] .segs>.tbar{position:sticky;top:calc(var(--tools-h,3rem) + .3rem);z-index:6;margin:0 0 1rem;text-align:start;text-align-last:auto;
- box-shadow:0 4px 14px rgba(0,0,0,.12)}
+html[data-read] .segs>.tbar{position:sticky;top:calc(var(--tools-v,var(--tools-h,3rem)) + .3rem);z-index:6;margin:0 0 1rem;text-align:start;text-align-last:auto;
+ box-shadow:0 4px 14px rgba(0,0,0,.12);transition:top .22s ease}
 html[data-read] .segs>.tbar.stuck :is(.tb-tip,[data-t=all]){display:none!important}
 .tb-mark{height:0}
 @media (max-width:700px){html[data-read] .segs>.tbar .tb-tip{display:none}
@@ -84,9 +107,26 @@ html[data-read] .segs>.tbar.stuck :is(.tb-tip,[data-t=all]){display:none!importa
  html[data-read] .segs>.tbar button{padding:.28em .6em}}
 html:is([data-theme=night],[data-theme=black])[data-read] .segs{box-shadow:none;border:1px solid var(--line)}
 @media (max-width:700px){html[data-read] .segs{margin:0 0 .6rem;padding:1rem .9rem 1.2rem;box-shadow:none;text-align:right}
- html[data-read] .segs .rd-h{font-size:calc(22px * min(var(--qscale,1),1.6));margin:.2rem 0 .5rem}}
+ html[data-read] .segs .rd-h{font-size:calc(22px * min(var(--qscale,1),1.6))}
+ html[data-read] .segs .rd-head{gap:.25rem .8rem;margin:.1rem 0 .6rem}}
 @media print{html[data-read] .segs{box-shadow:none;margin:0;max-width:none;padding:0}}
-/* the segment row */
+/* the segment row: compact, one line on a phone (2026-11-25) */
+section.seg>.player{gap:.35rem .55rem;margin:0 0 .5rem;padding:.3rem .45rem;border-radius:10px}
+section.seg>.player .play{padding:.36em .9em;border-radius:999px}
+section.seg>.player :is(.tst,.fcs){padding:.36em .85em;border-radius:999px}
+section.seg>.player .dur{font-size:.92em;font-variant-numeric:tabular-nums}
+section.seg>.player nav{gap:.75rem;font-size:.95em}
+@media (max-width:700px){section.seg>.player{font-size:calc(13px * var(--ui,1));gap:.3rem .45rem;padding:.25rem .35rem}
+ section.seg>.player .play{padding:.34em .75em}section.seg>.player :is(.tst,.fcs){padding:.34em .7em}section.seg>.player nav{gap:.6rem}}
+/* the segment's header on one line (2026-11-25, at the learner's request): the surah, the segment and its unit | the ayat,
+   the page and the Mushaf link | where it sits in the Mushaf: page, side, lines (app/words.js); no PDF page in the app */
+section.seg>header{display:block;padding-bottom:.35rem;font-size:13.5px;line-height:1.75}
+section.seg>header .surah{font-size:1.1em;font-weight:600}
+section.seg>header>:is(.hd-seg,.hd-ay){display:inline}
+section.seg>header>.hd-ay::before,section.seg>header>.hd-ay>.pgs::before{content:"";display:inline-block;width:1px;height:1em;margin:0 .6em;
+ vertical-align:-.15em;background:var(--rule,#c9b27a)}
+section.seg>header .ref-mushaf{font-size:.92em;line-height:1.45;margin-inline-start:.45em}
+@media (max-width:700px){section.seg>header{font-size:12.5px;line-height:1.7}section.seg>header .surah{font-size:1.08em}}
 .player .play .lb-pause{display:none}
 .player.playing .play .lb-play{display:none}
 .player.playing .play .lb-pause{display:inline}
@@ -95,29 +135,39 @@ html:is([data-theme=night],[data-theme=black])[data-read] .segs{box-shadow:none;
 .player .tst[aria-pressed="true"]{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
 .player .play{font-size:1.05em}
 /* room for the bar */
-html.has-pbar body{padding-bottom:calc(7.2rem * var(--ui,1) + env(safe-area-inset-bottom,0px))}
+html.has-pbar body{padding-bottom:calc(4.2rem * var(--ui,1) + env(safe-area-inset-bottom,0px))}
 html.has-pbar.rp-open body{padding-bottom:var(--rph,50vh)}
 
 /* ---- the practice bar ---- */
+/* one row since 2026-11-25: the progress is a thin line along its top edge, the place and time under the range's name;
+   it slides down out of sight with the toolbar while the reader scrolls down (app/bar.js), unless it plays */
 .pbar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--bar);border-top:1px solid var(--bar-line);color:var(--ink,#1f1d18);
- font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:calc(15px * var(--ui,1));padding:.45em .6em calc(.45em + env(safe-area-inset-bottom,0px));
- box-shadow:0 -4px 16px rgba(0,0,0,.12)}
+ font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:calc(15px * var(--ui,1));padding:.4em .55em calc(.4em + env(safe-area-inset-bottom,0px));
+ box-shadow:0 -4px 16px rgba(0,0,0,.12);transition:transform .22s ease}
+html.bars-off:not(.is-playing) .pbar{transform:translateY(calc(100% + 18px))}
+@media (prefers-reduced-motion:reduce){.pbar{transition:none}}
 html.rp-open .pbar{display:none}
 .pb-in{max-width:46rem;margin:0 auto}
 .pb-row{display:flex;align-items:center;gap:.4em}
-.pb-b{flex:none;min-width:2.7em;height:2.7em;padding:0 .55em;border:1px solid var(--ctl-line);border-radius:12px;background:var(--ctl);color:var(--ctl-ink);
+.pb-b{flex:none;min-width:2.6em;height:2.6em;padding:0 .5em;border:1px solid var(--ctl-line);border-radius:12px;background:var(--ctl);color:var(--ctl-ink);
  font:inherit;font-size:1.05em;font-weight:700;cursor:pointer;line-height:1}
-.pb-play{min-width:3.4em;height:3em;background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on);font-size:1.2em;border-radius:999px}
-.pb-range{flex:1 1 auto;min-width:0;height:2.7em;padding:0 .8em;border:1px solid var(--ctl-line);border-radius:12px;background:var(--ctl);color:var(--ctl-ink);
- font:inherit;font-weight:600;text-align:start;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.pb-play{min-width:3.2em;height:2.75em;background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on);font-size:1.2em;border-radius:999px}
+.pb-range{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;align-items:stretch;min-width:0;height:2.6em;padding:0 .8em;
+ border:1px solid var(--ctl-line);border-radius:12px;background:var(--ctl);color:var(--ctl-ink);font:inherit;font-weight:600;line-height:1.2;
+ text-align:start;cursor:pointer}
+.pb-rl{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pb-rep{font-variant-numeric:tabular-nums}
-.pb-prog{position:relative;height:.5em;margin:.45em .2em .2em;background:var(--line,#e3d9bf);border-radius:999px;overflow:hidden;cursor:pointer}
-.pb-fill{position:absolute;inset-block:0;inset-inline-start:0;width:0;background:var(--accent);border-radius:999px}
-.pb-stat{min-height:1.4em;font-size:.88em;font-weight:600;color:var(--muted,#5a5548);text-align:center;font-variant-numeric:tabular-nums}
+.pb-prog{position:absolute;left:0;right:0;top:-7px;height:14px;margin:0;cursor:pointer}
+.pb-prog::before{content:"";position:absolute;left:0;right:0;top:6px;height:3px;background:var(--line,#e3d9bf)}
+.pb-fill{position:absolute;top:6px;height:3px;inset-inline-start:0;width:0;background:var(--accent)}
+.pb-stat{display:block;font-size:.76em;font-weight:600;color:var(--muted,#5a5548);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ font-variant-numeric:tabular-nums}
+.pb-stat:empty{display:none}
 .pb-msg{margin:.3em 0 0;font-size:.9em;text-align:center;color:var(--muted,#5a5548)}
 .pb-msg.bad{color:var(--danger);font-weight:600}
 .pb-msg[hidden]{display:none}
-@media (max-width:420px){.pb-b{min-width:2.4em;padding:0 .35em}.pb-row{gap:.25em}}
+@media (max-width:420px){.pb-b{min-width:2.4em;padding:0 .35em}.pb-row{gap:.25em}.pbar{font-size:calc(15px * min(var(--ui,1),1.25))}}
+@media (max-width:370px){.pbar{font-size:calc(14px * min(var(--ui,1),1.15))}}
 /* the practice panel */
 .psheet .pkinds button{flex:1 1 40%;font-size:.9em}
 .pcust{display:flex;gap:.6rem;margin:.6rem 0 0}
@@ -140,14 +190,16 @@ html.rp-open .pbar{display:none}
 .quran .wd.ca{background:var(--hl-ayah)}
 .quran .wd.cw{background:var(--hl-word);box-shadow:0 .08em 0 0 var(--accent)}
 @media print{.quran .wd.ca,.quran .wd.cw{background:none!important;box-shadow:none!important}}
-/* page marks: where each page of the Mushaf begins, and its side */
-.pgm{display:block;text-align:center;margin:.35em 0 .1em;line-height:1.4;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:calc(13px * var(--ui,1));
- font-weight:700;color:var(--muted,#5a5548)}
-.pgm::before{content:attr(data-label);display:inline-block;padding:.1em .9em;border:1px solid var(--rule,#c9b27a);border-radius:999px;background:var(--paper,#fff)}
-.pgm[data-side=R]::before{border-right-width:5px}
-.pgm[data-side=L]::before{border-left-width:5px}
-.pgm.top{margin-top:0}
-.hd-ay .pgs{display:block;font-weight:600;margin-top:.15rem}
+/* page marks: where each page of the Mushaf begins, and its side; since 2026-11-25 small and in the line, and off in the
+   display panel (html[data-nopgm]), at the learner's request */
+.pgm{display:inline-block;margin:0 .25em;vertical-align:.45em;line-height:1.2;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+ font-size:calc(10.5px * var(--ui,1));font-weight:700;color:var(--muted,#5a5548);white-space:nowrap;word-spacing:normal;text-align:center;text-align-last:center}
+.pgm::before{content:attr(data-label);display:inline-block;padding:.08em .6em;border:1px solid var(--rule,#c9b27a);border-radius:999px;background:var(--paper,#fff)}
+.pgm[data-side=R]::before{border-right-width:3px}
+.pgm[data-side=L]::before{border-left-width:3px}
+.pgm.top{margin-inline-start:0}
+html[data-nopgm] .pgm{display:none!important}
+.hd-ay .pgs{display:inline;font-weight:600}
 @media print{.pgm{font-size:9pt}.pgm::before{border-width:1px}}
 
 /* ---- test mode ---- */

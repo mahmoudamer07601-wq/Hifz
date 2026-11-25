@@ -12,6 +12,9 @@
      (2026-11-21, at the learner's request, after a reader said they could be taken for the ayat: the
      title of each segment, a summary in phrases from its ayat, and its line in the surah's index are
      hidden unless switched on here, html[data-notitles]; the seam cards of app/aids.js leave it out too).
+     2026-11-25, at the learner's request: two line spacings tighter than the normal one (c1, c2), the page marks
+     in the text (where each page of the Mushaf begins) on or off (html[data-nopgm]), and whether the bars hide
+     while the reader scrolls down (app/bar.js; on unless switched off).
    - The toolbar's Aa button opens the display panel; ☾ switches night mode on and off; "Mushaf"
      opens a small box to go to any page of the Mushaf (mushaf.html), on the page in view.
    - window.HifzView = {get(), set(patch), on(fn), theme()} for the other scripts.
@@ -24,22 +27,25 @@
                ['Amiri Quran', 'أميري قرآن', 'Amiri Quran', 'Amiri Quran'],
                ['Scheherazade New', 'شهرزاد', 'Scheherazade', 'Scheherazade']];
   var DEF = { theme: 'auto', size: 1, lead: '1', font: 'Uthman Naskh', bold: false, plain: false, ui: 1, awake: true, tr: 'both', legend: true,
-              lines: false, rhyme: false, titles: false };
+              lines: false, rhyme: false, titles: false, marks: true, autohide: true };
   var TX = {
     ar: { title: 'عرض النص', theme: 'الوضع', light: 'نهاري', night: 'ليلي', black: 'أسود', auto: 'حسب الجهاز',
-      size: 'حجم الخط', lead: 'تباعد الأسطر', l1: 'عادي', l2: 'واسع', l3: 'أوسع', font: 'الخط', bold: 'حروف عريضة',
+      size: 'حجم الخط', lead: 'تباعد الأسطر', lc2: 'أضيق', lc1: 'ضيّق', l1: 'عادي', l2: 'واسع', l3: 'أوسع', font: 'الخط', bold: 'حروف عريضة',
+      marks: 'علامات الصفحات في النص (حيث تبدأ كل صفحة من المصحف)', autohide: 'إخفاء الشريطين أثناء التمرير إلى الأسفل (يعودان بالتمرير إلى الأعلى)',
       colors: 'ألوان التجويد', legend: 'مفتاح ألوان التجويد بعد كل مقطع', titles: 'عناوين المقاطع (ملخّص بعبارات من الآيات، وليست نصّ القرآن)', lines: 'أسطر المصحف: كل سطر كما هو في الصفحة', rhyme: 'إبراز فواصل الآيات', ui: 'حجم الأزرار', u1: 'عادي', u2: 'كبير', u3: 'أكبر', awake: 'إبقاء الشاشة مضاءة أثناء التلاوة والاختبار',
       done: 'تم', smaller: 'أصغر', larger: 'أكبر', goTitle: 'المصحف', go: 'اذهب', page: 'صفحة', pgLbl: 'رقم الصفحة (١–٦٠٤)',
       cur: 'الصفحة الحالية: {0}', R: 'يمين', L: 'يسار', nightOn: 'الوضع الليلي: مفعّل', nightOff: 'الوضع الليلي',
       tr: 'ترجمة المعاني عند لمس الآية أو المرور عليها بالفأرة', trBoth: 'الإنجليزية والإسبانية', trEn: 'الإنجليزية', trEs: 'الإسبانية', trOff: 'لا' },
     en: { title: 'Display', theme: 'Mode', light: 'Light', night: 'Night', black: 'Black', auto: 'Like the device',
-      size: 'Text size', lead: 'Line spacing', l1: 'Normal', l2: 'Wide', l3: 'Wider', font: 'Font', bold: 'Bold letters',
+      size: 'Text size', lead: 'Line spacing', lc2: 'Tighter', lc1: 'Tight', l1: 'Normal', l2: 'Wide', l3: 'Wider', font: 'Font', bold: 'Bold letters',
+      marks: 'Page marks in the text (where each page of the Mushaf begins)', autohide: 'Hide the bars while scrolling down (they come back when you scroll up)',
       colors: 'Tajweed colours', legend: 'Tajweed colour key after each segment', titles: "Segment titles (a summary in phrases from the ayat, not the Qur'an's text)", lines: 'Mushaf lines: each line as it sits on the page', rhyme: 'Mark the ayah endings (rhyme)', ui: 'Button size', u1: 'Normal', u2: 'Large', u3: 'Larger', awake: 'Keep the screen on while reciting and testing',
       done: 'Done', smaller: 'Smaller', larger: 'Larger', goTitle: 'Mushaf', go: 'Go', page: 'Page', pgLbl: 'Page number (1–604)',
       cur: 'Current page: {0}', R: 'right', L: 'left', nightOn: 'Night mode: on', nightOff: 'Night mode',
       tr: 'Translation when you touch an ayah or rest the mouse on it', trBoth: 'English and Spanish', trEn: 'English', trEs: 'Spanish', trOff: 'Off' },
     es: { title: 'Visualización', theme: 'Modo', light: 'Claro', night: 'Noche', black: 'Negro', auto: 'Como el dispositivo',
-      size: 'Tamaño del texto', lead: 'Interlineado', l1: 'Normal', l2: 'Amplio', l3: 'Más amplio', font: 'Fuente', bold: 'Letras en negrita',
+      size: 'Tamaño del texto', lead: 'Interlineado', lc2: 'Más reducido', lc1: 'Reducido', l1: 'Normal', l2: 'Amplio', l3: 'Más amplio', font: 'Fuente', bold: 'Letras en negrita',
+      marks: 'Marcas de página en el texto (dónde empieza cada página del mushaf)', autohide: 'Ocultar las barras al desplazarse hacia abajo (vuelven al desplazarse hacia arriba)',
       colors: 'Colores del tajwid', legend: 'Leyenda de colores del tajwid tras cada segmento', titles: 'Títulos de los segmentos (un resumen con frases de las aleyas, no el texto del Corán)', lines: 'Líneas del mushaf: cada línea como está en la página', rhyme: 'Resaltar los finales de aleya (rima)', ui: 'Tamaño de los botones', u1: 'Normal', u2: 'Grande', u3: 'Más grande',
       awake: 'Mantener la pantalla encendida al recitar y practicar',
       done: 'Listo', smaller: 'Más pequeño', larger: 'Más grande', goTitle: 'Mushaf', go: 'Ir', page: 'Página', pgLbl: 'Número de página (1–604)',
@@ -75,6 +81,7 @@
     if (S.titles === true) de.removeAttribute('data-notitles'); else de.setAttribute('data-notitles', '');
     if (S.lines) de.setAttribute('data-lines', ''); else de.removeAttribute('data-lines');
     if (S.rhyme) de.setAttribute('data-rhyme', ''); else de.removeAttribute('data-rhyme');
+    if (S.marks === false) de.setAttribute('data-nopgm', ''); else de.removeAttribute('data-nopgm');
     if (S.lead && S.lead !== '1') de.setAttribute('data-lead', S.lead); else de.removeAttribute('data-lead');
     de.style.setProperty('--qscale', String(+S.size || 1));
     de.style.setProperty('--ui', String(+S.ui || 1));
@@ -84,7 +91,8 @@
     if (m) m.setAttribute('content', t === 'black' ? '#000000' : t === 'night' ? '#24221d' : '#f3f0e8');
     [].forEach.call(document.querySelectorAll('[data-theme-toggle]'), function (b) {
       b.setAttribute('aria-pressed', t === 'light' ? 'false' : 'true');
-      b.textContent = t === 'light' ? '☾' : '☀';
+      var ic = b.querySelector('.tb-ic');                 // the item of the ☰ menu (2026-11-25): its icon only
+      (ic || b).textContent = t === 'light' ? '☾' : '☀';
       var l = t === 'light' ? T('nightOff') : T('nightOn');
       b.setAttribute('title', l); b.setAttribute('aria-label', l);
     });
@@ -123,14 +131,14 @@
     var o = el('output'); var p = el('button'); p.type = 'button'; p.setAttribute('data-step', '1'); p.textContent = 'A+';
     st.appendChild(m); st.appendChild(o); st.appendChild(p);
     sheet.appendChild(group('size', st));
-    sheet.appendChild(group('lead', seg('lead', [['1', 'l1'], ['2', 'l2'], ['3', 'l3']])));
+    sheet.appendChild(group('lead', seg('lead', [['c2', 'lc2'], ['c1', 'lc1'], ['1', 'l1'], ['2', 'l2'], ['3', 'l3']])));
     sheet.appendChild(group('font', seg('font', FONTS.map(function (f) { return [f[0], 'font:' + f[0]]; }))));
     var sws = el('div', 'vg'); sws.appendChild(sw('colors', 'colors'));
     if (document.getElementById('hifz-data')) {   // the surah files (2026-10-31)
       sws.appendChild(sw('titles', 'titles'));
-      sws.appendChild(sw('legend', 'legend')); sws.appendChild(sw('lines', 'lines')); sws.appendChild(sw('rhyme', 'rhyme'));
+      sws.appendChild(sw('legend', 'legend')); sws.appendChild(sw('marks', 'marks')); sws.appendChild(sw('lines', 'lines')); sws.appendChild(sw('rhyme', 'rhyme'));
     }
-    sws.appendChild(sw('bold', 'bold')); sws.appendChild(sw('awake', 'awake'));
+    sws.appendChild(sw('bold', 'bold')); sws.appendChild(sw('awake', 'awake')); sws.appendChild(sw('autohide', 'autohide'));
     sheet.appendChild(sws);
     sheet.appendChild(group('ui', seg('ui', [['1', 'u1'], ['1.25', 'u2'], ['1.5', 'u3']])));
     if (document.getElementById('hifz-data'))      // the surah files: the translation card of app/translate.js

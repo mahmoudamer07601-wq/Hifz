@@ -101,6 +101,11 @@ html[data-lead="2"] .quran{line-height:2.65}
 html[data-lead="3"] .quran{line-height:3.1}
 html[data-lead="2"] .fv-text{line-height:2.5}
 html[data-lead="3"] .fv-text{line-height:2.9}
+/* tighter than the normal 2.2 (2.1 on a phone), 2026-11-25 at the learner's request */
+html[data-lead="c1"] .quran{line-height:1.85}
+html[data-lead="c2"] .quran{line-height:1.6}
+html[data-lead="c1"] .fv-text{line-height:1.95}
+html[data-lead="c2"] .fv-text{line-height:1.7}
 @media screen{
  html .bism{font-size:calc(30px * var(--qscale,1))}
  html .page h1{font-size:calc(31px * min(var(--qscale,1),1.6))}
@@ -229,10 +234,68 @@ html[data-ui=en] .hn-g .hn-l,html[data-ui=es] .hn-g .hn-l{direction:ltr}
 html .vc-mic.on,html .tools .hs-box .vc-mic.on{background:var(--danger,#b3261e);border-color:var(--danger,#b3261e);color:#fff;animation:vc-pulse 1.2s ease-in-out infinite}
 @keyframes vc-pulse{0%,100%{box-shadow:0 0 0 0 rgba(179,38,30,.45)}50%{box-shadow:0 0 0 .45rem rgba(179,38,30,0)}}
 @media (prefers-reduced-motion:reduce){html .vc-mic.on,html .tools .hs-box .vc-mic.on{animation:none}}
-.vc-toast{position:fixed;z-index:70;top:calc(var(--tools-h,3rem) + .5rem);left:50%;transform:translateX(-50%);box-sizing:border-box;
+.vc-toast{position:fixed;z-index:70;top:calc(var(--tools-v,var(--tools-h,3rem)) + .5rem);left:50%;transform:translateX(-50%);box-sizing:border-box;
  width:max-content;max-width:min(92vw,36rem);padding:.55rem 1rem;border-radius:12px;background:var(--ink,#1f1d18);color:var(--paper,#fff);
  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.55;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.25);
  overflow-wrap:anywhere}
 .vc-toast.bad{background:var(--danger,#b3261e);color:#fff}
 .vc-toast[hidden]{display:none}
 @media print{.vc-mic,.vc-toast{display:none!important}}
+
+/* ---- the toolbar of the app (tools/ui.py app_bar, app/bar.js; 2026-11-25, at the learner's request: more of the text,
+   less of the bars): one row; ☰ the menu; on a phone ▾ the surah and juzʾ arrows and 🔍 the search over the row; the bar
+   slides up out of sight while the reader scrolls down (html.bars-off) ---- */
+html .tools.ui{display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:.45em;padding:.32em .55em;z-index:26;
+ background:var(--bar);border-bottom:1px solid var(--bar-line);color:var(--ctl-ink);font-size:calc(13px * min(var(--ui,1),1.35));
+ transition:transform .22s ease;box-sizing:border-box}
+html:not([data-ui=en]):not([data-ui=es]) .tools.ui{direction:rtl}
+html.bars-off .tools.ui{transform:translateY(calc(-100% - 2px))}
+html.bars-off{--tools-v:0px}        /* what the toolbar covers at the top: --tools-h, nothing while it is away */
+@media (prefers-reduced-motion:reduce){html .tools.ui{transition:none}}
+html .tools.ui .tb-sp{flex:1 1 0;min-width:0}
+html .tools.ui .tb-m,html .tools.ui .tb-find{display:flex;align-items:center;flex:none;min-width:0}
+html .tools.ui .tb-b{display:inline-flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box;min-width:2.75em;height:2.75em;
+ margin:0;padding:0 .55em;border:1px solid var(--ctl-line);border-radius:999px;background:var(--ctl);color:var(--ctl-ink);font:inherit;
+ font-size:1em;font-weight:700;line-height:1;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html .tools.ui .tb-mb>span{font-size:1.3em;line-height:1}
+html .tools.ui .tb-fb>span{font-size:1.05em;line-height:1}
+html .tools.ui .tb-b[aria-expanded=true]{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}
+@media (hover:hover){html .tools.ui .tb-b:hover{background:var(--ctl-on);color:var(--ctl-on-ink);border-color:var(--ctl-on)}}
+html .tools.ui .tb-b:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+/* the boxes under the bar: the menu, the surah and juzʾ arrows of a phone */
+html .tools.ui .tb-pop{position:absolute;top:calc(100% + .35em);z-index:5;box-sizing:border-box;background:var(--sheet);color:var(--sheet-ink);
+ border:1px solid var(--bar-line);border-radius:14px;box-shadow:0 12px 36px rgba(0,0,0,.28);font-size:calc(14px * min(var(--ui,1),1.35))}
+html .tools.ui .tb-pop[hidden]{display:none}
+html .tools.ui .tb-menu{inset-inline-start:.45em;display:flex;flex-direction:column;gap:.1em;width:max-content;min-width:min(17.5em,calc(100vw - 1em));
+ max-width:calc(100vw - 1em);max-height:calc(100vh - var(--tools-h,3rem) - 1.2rem);overflow:auto;padding:.35em;line-height:1.3}
+html .tools.ui .tb-menu>:is(a,button),html .tools.ui .tb-menu>:is(a,button)[aria-pressed],html .tools.ui .tb-menu>:is(a,button)[aria-current]{
+ display:flex;align-items:center;justify-content:flex-start;gap:.7em;box-sizing:border-box;width:100%;min-width:0;min-height:2.85em;margin:0;
+ padding:.3em .75em;border:0;border-radius:10px;background:none;color:inherit;font:inherit;font-weight:600;line-height:1.3;text-align:start;
+ text-decoration:none;white-space:normal;cursor:pointer}
+@media (hover:hover){html .tools.ui .tb-menu>:is(a,button):hover{background:var(--hl-ayah);color:inherit}}
+html .tools.ui .tb-menu>:is(a,button):focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+html .tools.ui .tb-menu>:is(a,button)[aria-current=page]{background:var(--hl-ayah)}
+html .tools.ui .tb-menu :is(.tb-ic,.hn-ri,.sl-i){flex:none;width:1.5em;font-size:1.18em;line-height:1;text-align:center}
+html .tools.ui .tb-menu>[aria-pressed=true]::after{content:"✓";margin-inline-start:auto;padding-inline-start:.8em;font-weight:800;color:var(--accent)}
+html .tools.ui .tb-menu .sl-t{display:inline;margin-inline-start:auto;padding-inline-start:.8em;font-weight:600;color:var(--muted,#5a5548);font-variant-numeric:tabular-nums}
+html .tools.ui .tb-menu .sl-t:empty{display:none}
+html .tools.ui .tb-lang{display:flex;flex-wrap:wrap;align-items:center;gap:.4em .7em;margin:.25em 0 0;padding:.55em .75em .3em;border-top:1px solid var(--line,#e3d9bf);font-weight:600}
+html .tools.ui .tb-lang .ui-lang{margin-inline-start:auto;flex:none}
+html .tools.ui .tb-lang .ui-lang button{min-height:2.3em;padding:0 .7em}
+/* the search: in the row on a wide screen; 🔍 on a phone opens it over the whole row (html.tb-finding) */
+html .tools.ui .tb-find .hs-box{margin:0}
+html .tools.ui .tb-x{display:none}
+@media (min-width:761px){html .tools.ui .tb-fb{display:none}html .tools.ui .tb-find .hs-q{width:13em}}
+@media (min-width:1100px){html .tools.ui .tb-find .hs-q{width:16em}}
+@media (max-width:760px){
+ html .tools.ui .tb-find .hs-box{display:none}
+ html.tb-finding .tools.ui .tb-find .hs-box{display:flex;position:absolute;inset:0;z-index:6;align-items:center;gap:.4em;padding:.3em .55em;
+  background:var(--bar);flex:none}
+ html.tb-finding .tools.ui .tb-find .hs-q{flex:1 1 auto;width:auto;min-width:0;height:2.6em}
+ html.tb-finding .tools.ui .tb-find .hs-q::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;display:none}
+ html.tb-finding .tools.ui .tb-x{display:inline-flex;align-items:center;justify-content:center;order:9;flex:none;width:2.6em;height:2.6em;padding:0;
+  border:1px solid var(--ctl-line);border-radius:50%;background:var(--ctl);color:var(--ctl-ink);font:inherit;font-size:1.05em;font-weight:700;cursor:pointer}
+}
+@media (max-width:760px){html .tools.ui{gap:.35em;padding:.3em .4em;font-size:calc(12px * min(var(--ui,1),1.3))}}
+@media (max-width:400px){html .tools.ui{gap:.3em;font-size:calc(12px * min(var(--ui,1),1.15))}}
+@media print{html .tools.ui{display:none}}

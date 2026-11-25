@@ -17,7 +17,9 @@
    the file), and the address keeps the place (#sNN, #a=s:a), so a reload opens there.
    A recitation that is running moves with the reader to the segment or juzʾ he moves to (window.HifzPlayer.moved);
    the top of the file (the index) leaves it where it is.
-   Since 2026-10-31 the row starts with 📖, the read-through view (at the learner's request: "view the whole surah in
+   Since 2026-11-25 (ui.app_bar, one row): the segment group stays in the row; on a phone the surah and juzʾ groups open
+   from ▾ (.hn-more, app/bar.js), which shows their numbers; on a wide screen they stand in the row.
+   Since 2026-10-31, 📖 (in the ☰ menu since 2026-11-25): the read-through view (at the learner's request: "view the whole surah in
    reading mode without any interruptions after I have already mastered segment by segment"): the segments as one
    text, without their rows, titles, clues or keys (app/book.css html[data-read]), kept per surah on this device; the
    arrows work the same in it (a segment opens at its first words, lit).
@@ -86,10 +88,11 @@
   }
 
   // ---------------------------------------------------------------- where the reader is
-  function toolsH() { var t = document.querySelector('.tools'); return t ? t.getBoundingClientRect().height : 0; }
+  // what the bars cover of the screen: nothing of a bar app/bar.js has slid away while the reader scrolls (2026-11-25)
+  function toolsH() { var t = document.querySelector('.tools'); return t ? Math.max(0, t.getBoundingClientRect().bottom) : 0; }
   function barH() {
     var b = document.querySelector('.pbar');
-    return b && getComputedStyle(b).display !== 'none' ? b.getBoundingClientRect().height : 0;
+    return b && getComputedStyle(b).display !== 'none' ? Math.max(0, window.innerHeight - b.getBoundingClientRect().top) : 0;
   }
   var pin = null;                 // {a, k}: where an arrow (or the address) has just brought the reader
   function onScreen(a) {
@@ -118,7 +121,7 @@
   }
 
   // ---------------------------------------------------------------- the arrows
-  var groups = {};
+  var groups = {}, more = bar.querySelector('.hn-more');   // ▾ of a phone: the surah and juzʾ arrows (2026-11-25)
   [].forEach.call(bar.querySelectorAll('.hn-g'), function (g) {
     var x = { p: g.querySelector('.hn-p'), l: g.querySelector('.hn-l'), n: g.querySelector('.hn-x') };
     [x.p, x.l, x.n].forEach(function (el) { el.removeAttribute('data-i18n-attr'); });   // their titles are written here
@@ -151,6 +154,7 @@
     set(g.l, toSeg(k), k ? fmt(T('gTop'), nm(G[k - 1][0])) : T('gIdx'));
     set(g.n, k < K ? toSeg(k + 1) : null, k < K ? fmt(T('gNext'), nm(G[k][0])) : T('gNo1'));
     label(z, T('j'), nm(j));
+    if (more) { var mv = more.querySelector('.hn-mv'), t2 = nm(S) + ' · ' + nm(j); if (mv && mv.textContent !== t2) mv.textContent = t2; }
     function jt(t, jj) { var e = JZ[jj - 1]; return fmt(T(t), nm(jj), iso(name(e[0])), nm(e[1])); }
     set(z.p, j > 1 ? toJuz(j - 1) : null, j > 1 ? jt('jPrev', j - 1) : T('jNo0'));
     set(z.l, toJuz(j), jt('jTop', j));
@@ -219,10 +223,10 @@
   });
 
   // ---------------------------------------------------------------- the read-through view (2026-10-31)
-  // 📖 at the head of the row: the whole surah as one text (html[data-read], app/book.css), kept for this surah on
+  // 📖 (at the head of the row until 2026-11-25, in the ☰ menu since): the whole surah as one text (html[data-read], app/book.css), kept for this surah on
   // this device (localStorage "hifz-read" = {surah: 1}, read before the page is drawn by tools/ui.py VIEW_JS); the
   // ayah at the top of the screen stays at the top when it is switched; a segment in test mode leaves it.
-  var RK = 'hifz-read', rdb = bar.querySelector('.hn-rd');
+  var RK = 'hifz-read', rdb = document.querySelector('.tools .hn-rd');   // in the ☰ menu since 2026-11-25
   function reading() { return de.hasAttribute('data-read'); }
   function paintRead() {
     if (!rdb) return;

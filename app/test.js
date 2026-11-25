@@ -189,7 +189,7 @@
     on[ALL.id] = true;
     words(ALL).forEach(function (w) { if (!w.hasAttribute('data-h')) w.setAttribute('data-h', clue(w)); w.classList.remove('shown', 'help', 'ok', 'miss'); });
     ALL.classList.add('testing');
-    var row = ALL.querySelector('.rd-test'), b = bar(ALL), mark = document.createElement('div');
+    var row = ALL.querySelector('.rd-head') || ALL.querySelector('.rd-test'), b = bar(ALL), mark = document.createElement('div');   // the title's row (2026-11-25)
     b.classList.add('tb-all'); mark.className = 'tb-mark';
     var r2 = b.querySelectorAll('.tb-row')[1]; r2.insertBefore(b.querySelector('[data-t="nextw"]'), r2.firstChild);   // Next word beside Recite aloud
     row.parentNode.insertBefore(b, row.nextSibling); row.parentNode.insertBefore(mark, b);

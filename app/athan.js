@@ -249,16 +249,20 @@
     if (!mb || document.querySelector('.tools [data-salat]')) return;
     var a = document.createElement('a');
     a.className = 'vw sl'; a.setAttribute('data-salat', ''); a.href = root + 'salat.html';
-    a.innerHTML = '<span class="sl-i" aria-hidden="true">🕋</span><span class="sl-t"></span>';
+    // in the ☰ menu of the toolbar (2026-11-25): its name too, then the next prayer
+    a.innerHTML = '<span class="sl-i" aria-hidden="true">🕋</span>' + (mb.closest('.tb-menu') ? '<span class="sl-l"></span>' : '') + '<span class="sl-t"></span>';
     if (/(^|\/)salat\.html$/.test(location.pathname)) a.setAttribute('aria-current', 'page');
     mb.parentNode.insertBefore(a, mb.nextSibling);
   }
   function paintLinks() {
     var a = document.querySelector('.tools [data-salat]'), h = document.querySelector('[data-salat-next]');
     if (!a && !h) return;
+    var sl = a && a.querySelector('.sl-l'); if (sl) sl.textContent = T('link');
     next().then(function (n) {
       var label = n ? fmt(T('nextL'), T(n.name), fmtTime(n.at), until(n.at - Date.now())) : T('setLoc');
-      if (a) { a.querySelector('.sl-t').textContent = n ? T(n.name) + ' ' + fmtTime(n.at) : ''; a.title = T('link') + (n ? ' · ' + label : ''); a.setAttribute('aria-label', a.title); }
+      if (a) {
+        a.querySelector('.sl-t').textContent = n ? T(n.name) + ' ' + fmtTime(n.at) : ''; a.title = T('link') + (n ? ' · ' + label : ''); a.setAttribute('aria-label', a.title);
+      }
       if (h) h.textContent = '🕋 ' + label;
     }, function () {});
   }

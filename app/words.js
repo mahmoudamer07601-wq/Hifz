@@ -115,9 +115,10 @@
 
   // ---- pages and their sides ----
   var TX = {
-    ar: { pg: 'ص {0} · {1}', R: 'يمين', L: 'يسار', hd: 'في المصحف: {0}', line: 'السطر {0}', lines: 'الأسطر {0}–{1}' },
-    en: { pg: 'p. {0} · {1}', R: 'right', L: 'left', hd: 'In the Mushaf: {0}', line: 'line {0}', lines: 'lines {0}–{1}' },
-    es: { pg: 'pág. {0} · {1}', R: 'derecha', L: 'izquierda', hd: 'En el mushaf: {0}', line: 'línea {0}', lines: 'líneas {0}–{1}' }
+    // no-break spaces keep a word with its number when the header's line wraps (2026-11-25)
+    ar: { pg: 'ص\u00a0{0} · {1}', R: 'يمين', L: 'يسار', hd: 'في\u00a0المصحف: {0}', line: 'السطر\u00a0{0}', lines: 'الأسطر\u00a0{0}–{1}' },
+    en: { pg: 'p.\u00a0{0} · {1}', R: 'right', L: 'left', hd: 'In\u00a0the\u00a0Mushaf: {0}', line: 'line\u00a0{0}', lines: 'lines\u00a0{0}–{1}' },
+    es: { pg: 'pág.\u00a0{0} · {1}', R: 'derecha', L: 'izquierda', hd: 'En\u00a0el\u00a0mushaf: {0}', line: 'línea\u00a0{0}', lines: 'líneas\u00a0{0}–{1}' }
   };
   function lang() { var u = de.getAttribute('data-ui'); return u === 'en' || u === 'es' ? u : 'ar'; }
   function nm(n) { return lang() === 'ar' ? String(n).replace(/[0-9]/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'.charAt(+d); }) : String(n); }
